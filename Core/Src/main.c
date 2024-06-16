@@ -30,6 +30,7 @@
 #include "../../Drivers/BSP/STM32746G-Discovery/stm32746g_discovery_lcd.h"
 #include "../../Drivers/BSP/STM32746G-Discovery/stm32746g_discovery_ts.h"
 #include "../../Drivers/BSP/STM32746G-Discovery/stm32746g_discovery_camera.h"
+#include "ip4_addr.h"
 
 //#include "apps/httpd.h"
 //#include "lwip/apps/httpd.h"
@@ -37,7 +38,11 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+union _uniaIP
+{
+	struct ip4_addr ip;
+	uint8_t u8[4];
+} uniaIP;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -207,10 +212,11 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART6_UART_Init();
   /* USER CODE BEGIN 2 */
+
   //httpd_init();
   BSP_LED_Init(LED1);
   BSP_PB_Init(BUTTON_TAMPER, BUTTON_MODE_GPIO);
-  BSP_TS_Init(640, 272);	//480x272
+  BSP_TS_Init(480, 272);	//480x272
   BSP_CAMERA_Init(CAMERA_R320x240);
   BSP_LED_Init(0);
 
@@ -259,7 +265,7 @@ int main(void)
   BSP_LCD_SetBackColor(LCD_COLOR_GREEN);
   BSP_LCD_DisplayStringAt(KLAW_POZ_X+5, KLAW1_Y+NAPIS_OFFY, ( uint8_t*)"Zdjecie", LEFT_MODE);
   BSP_LCD_DisplayStringAt(KLAW_POZ_X+5, KLAW2_Y+NAPIS_OFFY, ( uint8_t*)"Start Film", LEFT_MODE);
-  BSP_LCD_DisplayStringAt(KLAW_POZ_X+5, KLAW3_Y+NAPIS_OFFY, ( uint8_t*)"wolny...", LEFT_MODE);
+  BSP_LCD_DisplayStringAt(KLAW_POZ_X+5, KLAW3_Y+NAPIS_OFFY, ( uint8_t*)"Monitor IP", LEFT_MODE);
   BSP_LCD_DisplayStringAt(KLAW_POZ_X+5, KLAW4_Y+NAPIS_OFFY, ( uint8_t*)"Julia",  LEFT_MODE);
   BSP_LCD_SetBackColor(LCD_COLOR_WHITE);
 
@@ -295,6 +301,7 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
+
   /* USER CODE END RTOS_THREADS */
 
   /* Start scheduler */
@@ -304,6 +311,7 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  MX_LWIP_Init();	//to musi być ostatnia instrukcja, bo przeskakuje do osobnego wątku i nie idzie dalej.
   while (1)
   {
     /* USER CODE END WHILE */
@@ -1683,7 +1691,7 @@ void StartDefaultTask(void const * argument)
   static uint8_t bufor_kamery[1280 * 1024 * 2] __attribute__((section(".BuforKamery")));
   static uint8_t bufor_okna[320 * 240 * 2] __attribute__((section(".BuforLCD1")));
   static uint8_t bufor_ekranu[480 * 272 * 4] __attribute__((section(".BuforLCD0")));
-  char chNapis[30];
+  char chNapis[40];
   uint8_t chZrobione = 0;
   uint8_t chFilm = 0;
   TS_StateTypeDef touch;
@@ -1691,6 +1699,7 @@ void StartDefaultTask(void const * argument)
   extern float fImag;
   uint8_t chStartFraktal = 0;
   uint32_t nCzas;
+  //_uniaIP uniaIP;
 
   osDelay(1000);
 
@@ -1700,7 +1709,7 @@ void StartDefaultTask(void const * argument)
   struct udp_pcb* my_udp = udp_new();
   udp_connect(my_udp, &PC_IPADDR, 55151);
   struct pbuf* udp_buffer = NULL;
-
+  extern struct netif gnetif;
 
 
   /* Infinite loop */
@@ -1719,7 +1728,7 @@ void StartDefaultTask(void const * argument)
     BSP_TS_GetState(&touch);
 
     BSP_LCD_SelectLayer(0);
-    sprintf(chNapis, "X=%d, T=%d  ", touch.touchX[0], touch.touchY[0]);
+    sprintf(chNapis, "X=%d, Y=%d  ", touch.touchX[0], touch.touchY[0]);
     BSP_LCD_DisplayStringAt(KLAW_POZ_X, 220, (uint8_t*)chNapis, LEFT_MODE);
     sprintf(chNapis, "T=%d, W=%d  ", touch.touchDetected, touch.touchWeight[0]);
     BSP_LCD_DisplayStringAt(KLAW_POZ_X, 240, (uint8_t*)chNapis, LEFT_MODE);
@@ -1762,14 +1771,50 @@ void StartDefaultTask(void const * argument)
     	chZrobione = 1;
 	}
 
-	//przycisk
+	//przycisk Monitor IP
 	if ((touch.touchDetected >= 1) && (touch.touchX[0] >= KLAW_POZ_X)  && (touch.touchY[0] >= KLAW3_Y) && (touch.touchY[0] < (KLAW3_Y + KLAW_ROZ_Y)) && !chZrobione)
 	{
+		BSP_LCD_SelectLayer(1);
+		BSP_LCD_Clear(LCD_COLOR_BLACK);
 
+		sprintf(chNapis, "WHADDR: %d.%d.%d.%d.%d.%d ", gnetif.hwaddr[0], gnetif.hwaddr[1], gnetif.hwaddr[2], gnetif.hwaddr[3], gnetif.hwaddr[4], gnetif.hwaddr[5]);
+		BSP_LCD_DisplayStringAt(5, 10, (uint8_t*)chNapis, LEFT_MODE);
 
+		uniaIP.ip = gnetif.ip_addr;
+		sprintf(chNapis, "IP Addr: %d.%d.%d.%d ", uniaIP.u8[0], uniaIP.u8[1],  uniaIP.u8[2],  uniaIP.u8[3]);
+		BSP_LCD_DisplayStringAt(5, 25, (uint8_t*)chNapis, LEFT_MODE);
+
+		netif_status_callback_fn fun;
+		fun = gnetif.link_callback;
+		//uniaIP.ip = fun->ip_addr;
+
+		//sprintf(chNapis, "IP Addr: %d.%d.%d.%d ", uniaIP.u8[0], uniaIP.u8[1],  uniaIP.u8[2],  uniaIP.u8[3]);
+		//BSP_LCD_DisplayStringAt(5, 40, (uint8_t*)chNapis, LEFT_MODE);
+
+		//flagi są z pliku netif.h
+		sprintf(chNapis, "FLAG_UP: %d ", gnetif.flags & NETIF_FLAG_UP);
+		BSP_LCD_DisplayStringAt(5, 55, (uint8_t*)chNapis, LEFT_MODE);
+
+		sprintf(chNapis, "FLAG_BROADCAST: %d", (gnetif.flags & NETIF_FLAG_BROADCAST) == NETIF_FLAG_BROADCAST);
+		BSP_LCD_DisplayStringAt(5, 70, (uint8_t*)chNapis, LEFT_MODE);
+
+		sprintf(chNapis, "FLAG_LINK_UP: %d ", (gnetif.flags & NETIF_FLAG_LINK_UP) == NETIF_FLAG_LINK_UP);
+		BSP_LCD_DisplayStringAt(5, 85, (uint8_t*)chNapis, LEFT_MODE);
+
+		sprintf(chNapis, "FLAG_ETHARP: %d", (gnetif.flags & NETIF_FLAG_ETHARP) == NETIF_FLAG_ETHARP);
+		BSP_LCD_DisplayStringAt(5, 100, (uint8_t*)chNapis, LEFT_MODE);
+
+		sprintf(chNapis, "FLAG_ETHERNET: %d", (gnetif.flags & NETIF_FLAG_ETHERNET) == NETIF_FLAG_ETHERNET);
+		BSP_LCD_DisplayStringAt(5, 115, (uint8_t*)chNapis, LEFT_MODE);
+
+		sprintf(chNapis, "FLAG_IGMP: %d ", (gnetif.flags & NETIF_FLAG_IGMP) == NETIF_FLAG_IGMP);
+		BSP_LCD_DisplayStringAt(5, 130, (uint8_t*)chNapis, LEFT_MODE);
+
+		sprintf(chNapis, "FLAG_MLD6: %d", (gnetif.flags & NETIF_FLAG_MLD6) == NETIF_FLAG_MLD6);
+		BSP_LCD_DisplayStringAt(5, 145, (uint8_t*)chNapis, LEFT_MODE);
 	}
 
-	//przycisk fraktalada
+	//przycisk fraktal
 	if ((touch.touchDetected >= 1) && (touch.touchX[0] >= KLAW_POZ_X)  && (touch.touchY[0] >= KLAW4_Y) && (touch.touchY[0] < (KLAW4_Y + KLAW_ROZ_Y)) && !chZrobione)
 	{
 		InitFraktal(0);

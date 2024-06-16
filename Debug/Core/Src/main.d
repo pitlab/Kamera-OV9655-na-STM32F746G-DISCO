@@ -98,17 +98,17 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Middlewares/Third_Party/LwIP/src/include/lwip/prot/etharp.h \
  ../Middlewares/Third_Party/LwIP/src/include/netif/ethernet.h \
  ../Middlewares/Third_Party/LwIP/src/include/lwip/dhcp.h \
+ ../Middlewares/Third_Party/LwIP/src/include/lwip/udp.h \
+ ../Middlewares/Third_Party/LwIP/src/include/lwip/ip.h \
+ ../Middlewares/Third_Party/LwIP/src/include/lwip/ip6.h \
+ ../Middlewares/Third_Party/LwIP/src/include/lwip/prot/ip.h \
+ ../Middlewares/Third_Party/LwIP/src/include/lwip/prot/udp.h \
  ../Middlewares/Third_Party/LwIP/src/include/lwip/timeouts.h \
  ../Middlewares/Third_Party/LwIP/src/include/lwip/sys.h \
  ../Middlewares/Third_Party/LwIP/system/arch/sys_arch.h \
  ../LWIP/Target/ethernetif.h \
  ../Middlewares/Third_Party/LwIP/src/include/lwip/tcpip.h \
  ../USB_HOST/App/usb_host.h \
- ../Middlewares/Third_Party/LwIP/src/include/lwip/udp.h \
- ../Middlewares/Third_Party/LwIP/src/include/lwip/ip.h \
- ../Middlewares/Third_Party/LwIP/src/include/lwip/ip6.h \
- ../Middlewares/Third_Party/LwIP/src/include/lwip/prot/ip.h \
- ../Middlewares/Third_Party/LwIP/src/include/lwip/prot/udp.h \
  ../Drivers/STM32F7xx_HAL_Driver/Inc/../../BSP/STM32746G-Discovery/stm32746g_discovery.h \
  ../Core/Src/../../Drivers/BSP/STM32746G-Discovery/stm32746g_discovery_lcd.h \
  ../Core/Src/../../Drivers/BSP/STM32746G-Discovery/../Components/rk043fn48h/rk043fn48h.h \
@@ -120,7 +120,8 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Core/Src/../../Drivers/BSP/STM32746G-Discovery/../Components/ft5336/../Common/ts.h \
  ../Core/Src/../../Drivers/BSP/STM32746G-Discovery/stm32746g_discovery_camera.h \
  ../Core/Src/../../Drivers/BSP/STM32746G-Discovery/../Components/ov9655/ov9655.h \
- ../Core/Src/../../Drivers/BSP/STM32746G-Discovery/../Components/ov9655/../Common/camera.h
+ ../Core/Src/../../Drivers/BSP/STM32746G-Discovery/../Components/ov9655/../Common/camera.h \
+ ../Middlewares/Third_Party/LwIP/src/include/lwip/ip4_addr.h
 ../Core/Inc/main.h:
 ../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal.h:
 ../Core/Inc/stm32f7xx_hal_conf.h:
@@ -221,17 +222,17 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Middlewares/Third_Party/LwIP/src/include/lwip/prot/etharp.h:
 ../Middlewares/Third_Party/LwIP/src/include/netif/ethernet.h:
 ../Middlewares/Third_Party/LwIP/src/include/lwip/dhcp.h:
+../Middlewares/Third_Party/LwIP/src/include/lwip/udp.h:
+../Middlewares/Third_Party/LwIP/src/include/lwip/ip.h:
+../Middlewares/Third_Party/LwIP/src/include/lwip/ip6.h:
+../Middlewares/Third_Party/LwIP/src/include/lwip/prot/ip.h:
+../Middlewares/Third_Party/LwIP/src/include/lwip/prot/udp.h:
 ../Middlewares/Third_Party/LwIP/src/include/lwip/timeouts.h:
 ../Middlewares/Third_Party/LwIP/src/include/lwip/sys.h:
 ../Middlewares/Third_Party/LwIP/system/arch/sys_arch.h:
 ../LWIP/Target/ethernetif.h:
 ../Middlewares/Third_Party/LwIP/src/include/lwip/tcpip.h:
 ../USB_HOST/App/usb_host.h:
-../Middlewares/Third_Party/LwIP/src/include/lwip/udp.h:
-../Middlewares/Third_Party/LwIP/src/include/lwip/ip.h:
-../Middlewares/Third_Party/LwIP/src/include/lwip/ip6.h:
-../Middlewares/Third_Party/LwIP/src/include/lwip/prot/ip.h:
-../Middlewares/Third_Party/LwIP/src/include/lwip/prot/udp.h:
 ../Drivers/STM32F7xx_HAL_Driver/Inc/../../BSP/STM32746G-Discovery/stm32746g_discovery.h:
 ../Core/Src/../../Drivers/BSP/STM32746G-Discovery/stm32746g_discovery_lcd.h:
 ../Core/Src/../../Drivers/BSP/STM32746G-Discovery/../Components/rk043fn48h/rk043fn48h.h:
@@ -244,3 +245,4 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Core/Src/../../Drivers/BSP/STM32746G-Discovery/stm32746g_discovery_camera.h:
 ../Core/Src/../../Drivers/BSP/STM32746G-Discovery/../Components/ov9655/ov9655.h:
 ../Core/Src/../../Drivers/BSP/STM32746G-Discovery/../Components/ov9655/../Common/camera.h:
+../Middlewares/Third_Party/LwIP/src/include/lwip/ip4_addr.h:

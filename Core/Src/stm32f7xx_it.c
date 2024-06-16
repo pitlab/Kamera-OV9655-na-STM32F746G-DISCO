@@ -58,7 +58,6 @@
 extern ETH_HandleTypeDef heth;
 extern HCD_HandleTypeDef hhcd_USB_OTG_FS;
 extern DMA2D_HandleTypeDef hdma2d;
-extern DMA_HandleTypeDef hdma;
 extern LTDC_HandleTypeDef hltdc;
 extern TIM_HandleTypeDef htim6;
 
