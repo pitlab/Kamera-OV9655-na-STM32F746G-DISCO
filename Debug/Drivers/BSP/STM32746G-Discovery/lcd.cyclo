@@ -1,0 +1,17 @@
+../Drivers/BSP/STM32746G-Discovery/lcd.c:21:6:InitDisplay	1
+../Drivers/BSP/STM32746G-Discovery/lcd.c:33:15:Menu	5
+../Drivers/BSP/STM32746G-Discovery/lcd.c:120:6:RysujMenuTimer	1
+../Drivers/BSP/STM32746G-Discovery/lcd.c:138:6:WyswietlDane	1
+../Drivers/BSP/STM32746G-Discovery/lcd.c:145:6:WyswietlDaneFloat	1
+../Drivers/BSP/STM32746G-Discovery/lcd.c:162:6:WyswietlKodBledu	2
+../Drivers/BSP/STM32746G-Discovery/lcd.c:184:6:InitFraktal	5
+../Drivers/BSP/STM32746G-Discovery/lcd.c:213:6:FraktalTest	5
+../Drivers/BSP/STM32746G-Discovery/lcd.c:260:6:FraktalDemo	11
+../Drivers/BSP/STM32746G-Discovery/lcd.c:316:6:GenerateJulia	5
+../Drivers/BSP/STM32746G-Discovery/lcd.c:349:6:GenerateJulia4	5
+../Drivers/BSP/STM32746G-Discovery/lcd.c:390:6:GenerateMandelbrot	5
+../Drivers/BSP/STM32746G-Discovery/lcd.c:440:6:HSV2RGB	8
+../Drivers/BSP/STM32746G-Discovery/lcd.c:479:14:MinalCzas	2
+../Drivers/BSP/STM32746G-Discovery/lcd.c:498:6:DispErr	1
+../Drivers/BSP/STM32746G-Discovery/lcd.c:513:6:WyswietlPomoc	2
+../Drivers/BSP/STM32746G-Discovery/lcd.c:544:6:WyswietlAnalizeEth	2

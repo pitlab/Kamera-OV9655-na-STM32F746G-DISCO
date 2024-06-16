@@ -1,0 +1,15 @@
+../Middlewares/Third_Party/lvgl/src/others/sysmon/../../misc/lv_timer.h:247:22:lv_timer_get_user_data	16	static
+../Middlewares/Third_Party/lvgl/src/others/sysmon/../../others/observer/../../core/../misc/../font/../draw/../misc/lv_color.h:286:26:lv_color_make	24	static
+../Middlewares/Third_Party/lvgl/src/others/sysmon/../../others/observer/../../core/../misc/../font/../draw/../misc/lv_color.h:413:26:lv_color_white	16	static
+../Middlewares/Third_Party/lvgl/src/others/sysmon/../../others/observer/../../core/../misc/../font/../draw/../misc/lv_color.h:422:26:lv_color_black	16	static
+../Middlewares/Third_Party/lvgl/src/others/sysmon/../../others/observer/../../core/../misc/../font/../draw/../stdlib/lv_string.h:65:20:lv_memzero	16	static
+../Middlewares/Third_Party/lvgl/src/others/sysmon/../../others/observer/../../core/../display/lv_display.h:410:26:lv_layer_sys	8	static
+../Middlewares/Third_Party/lvgl/src/others/sysmon/../../others/observer/../../core/lv_obj_style.h:241:20:lv_obj_set_style_pad_all	24	static
+../Middlewares/Third_Party/lvgl/src/others/sysmon/lv_sysmon.c:70:6:_lv_sysmon_builtin_init	8	static
+../Middlewares/Third_Party/lvgl/src/others/sysmon/lv_sysmon.c:85:6:_lv_sysmon_builtin_deinit	8	static
+../Middlewares/Third_Party/lvgl/src/others/sysmon/lv_sysmon.c:96:12:lv_sysmon_create	32	static
+../Middlewares/Third_Party/lvgl/src/others/sysmon/lv_sysmon.c:114:13:perf_monitor_disp_event_cb	24	static
+../Middlewares/Third_Party/lvgl/src/others/sysmon/lv_sysmon.c:147:13:perf_update_timer_cb	104	static
+../Middlewares/Third_Party/lvgl/src/others/sysmon/lv_sysmon.c:196:13:perf_observer_cb	48	static
+../Middlewares/Third_Party/lvgl/src/others/sysmon/lv_sysmon.c:226:13:mem_update_timer_cb	24	static
+../Middlewares/Third_Party/lvgl/src/others/sysmon/lv_sysmon.c:243:13:mem_observer_cb	48	static
