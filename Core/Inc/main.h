@@ -47,6 +47,8 @@ extern void GenerateJulia(unsigned short size_x, unsigned short size_y, unsigned
 extern void GenerateJulia4(unsigned short size_x, unsigned short size_y, unsigned short offset_x, unsigned short offset_y, unsigned short zoom, unsigned int * buffer);
 extern void GenerateMandelbrot(float centre_X, float centre_Y, float Zoom, unsigned short IterationMax, unsigned short * buffer);
 extern unsigned int MinalCzas(unsigned int nStart);
+//extern void PobierzEthArp(uint8_t n, uint32_t *nIpAdr, struct eth_addr ethAdr);
+extern void PobierzEthArp(unsigned char n, uint32_t *nIpAdr);
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/

@@ -40,6 +40,7 @@
 /* USER CODE BEGIN PTD */
 union _uniaIP
 {
+	uint32_t u32;
 	struct ip4_addr ip;
 	uint8_t u8[4];
 } uniaIP;
@@ -1688,28 +1689,46 @@ void StartDefaultTask(void const * argument)
   MX_LWIP_Init();
   /* USER CODE BEGIN 5 */
   const char* message = "Hello UDP message!\n\r";
-  static uint8_t bufor_kamery[1280 * 1024 * 2] __attribute__((section(".BuforKamery")));
+  //static uint8_t bufor_kamery[1280 * 1024 * 2] __attribute__((section(".BuforKamery")));
   static uint8_t bufor_okna[320 * 240 * 2] __attribute__((section(".BuforLCD1")));
-  static uint8_t bufor_ekranu[480 * 272 * 4] __attribute__((section(".BuforLCD0")));
-  char chNapis[40];
+  //static uint8_t bufor_ekranu[480 * 272 * 4] __attribute__((section(".BuforLCD0")));
+  char chNapis[70];
   uint8_t chZrobione = 0;
-  uint8_t chFilm = 0;
+  uint8_t n, chFilm = 0;
   TS_StateTypeDef touch;
-  HAL_StatusTypeDef err;
   extern float fImag;
   uint8_t chStartFraktal = 0;
   uint32_t nCzas;
-  //_uniaIP uniaIP;
+
+  struct etharp_entry {
+  #if ARP_QUEUEING
+    /** Pointer to queue of pending outgoing packets on this ARP entry. */
+    struct etharp_q_entry *q;
+  #else /* ARP_QUEUEING */
+    /** Pointer to a single pending outgoing packet on this ARP entry. */
+    struct pbuf *q;
+  #endif /* ARP_QUEUEING */
+    ip4_addr_t ipaddr;
+    struct netif *netif;
+    struct eth_addr ethaddr;
+    u16_t ctime;
+    u8_t state;
+  };
+  //extern struct etharp_entry arp_table[];
+  extern struct netif gnetif;
+
 
   osDelay(1000);
 
   ip_addr_t PC_IPADDR;
   IP_ADDR4(&PC_IPADDR, 192, 168, 1, 111);
-
+  struct pbuf* udp_buffer = NULL;
   struct udp_pcb* my_udp = udp_new();
   udp_connect(my_udp, &PC_IPADDR, 55151);
-  struct pbuf* udp_buffer = NULL;
-  extern struct netif gnetif;
+
+  //struct eth_addr adres_eth;
+  //extern int etharp_get_entry(size_t i, ip4_addr_t **ipaddr, struct netif **netif, struct eth_addr **eth_ret);
+
 
 
   /* Infinite loop */
@@ -1740,7 +1759,7 @@ void StartDefaultTask(void const * argument)
     //przycisk zrób zdjęcie
     if ((touch.touchDetected >= 1) && (touch.touchX[0] >= KLAW_POZ_X)  && (touch.touchY[0] >= KLAW1_Y) && (touch.touchY[0] < (KLAW1_Y + KLAW_ROZ_Y)) && !chZrobione)
     {
-    	err = BSP_CAMERA_SnapshotStart(bufor_okna);
+    	BSP_CAMERA_SnapshotStart(bufor_okna);
     	chZrobione = 1;
     	chStartFraktal = 0;
     }
@@ -1784,8 +1803,8 @@ void StartDefaultTask(void const * argument)
 		sprintf(chNapis, "IP Addr: %d.%d.%d.%d ", uniaIP.u8[0], uniaIP.u8[1],  uniaIP.u8[2],  uniaIP.u8[3]);
 		BSP_LCD_DisplayStringAt(5, 25, (uint8_t*)chNapis, LEFT_MODE);
 
-		netif_status_callback_fn fun;
-		fun = gnetif.link_callback;
+		//netif_status_callback_fn fun;
+		//fun = gnetif.link_callback;
 		//uniaIP.ip = fun->ip_addr;
 
 		//sprintf(chNapis, "IP Addr: %d.%d.%d.%d ", uniaIP.u8[0], uniaIP.u8[1],  uniaIP.u8[2],  uniaIP.u8[3]);
@@ -1812,6 +1831,18 @@ void StartDefaultTask(void const * argument)
 
 		sprintf(chNapis, "FLAG_MLD6: %d", (gnetif.flags & NETIF_FLAG_MLD6) == NETIF_FLAG_MLD6);
 		BSP_LCD_DisplayStringAt(5, 145, (uint8_t*)chNapis, LEFT_MODE);
+
+		//tablica ARP
+		for (n=0; n<4; n++)
+		{
+			PobierzEthArp(n, &uniaIP.u32);
+			//uniaIP.ip = arp_table[n].ipaddr;
+			//sprintf(chNapis, "ARP[%d].IP: %d.%d.%d.%d, EthAdr:  %d.%d.%d.%d.%d.%d", n, uniaIP.u8[0], uniaIP.u8[1],  uniaIP.u8[2],  uniaIP.u8[3], arp_table[n].ethaddr.addr[0], arp_table[n].ethaddr.addr[1], arp_table[n].ethaddr.addr[2], arp_table[n].ethaddr.addr[3], arp_table[n].ethaddr.addr[4], arp_table[n].ethaddr.addr[5]);
+			//sprintf(chNapis, "ARP[%d].IP: %d.%d.%d.%d, EthAdr:  %d.%d.%d.%d.%d.%d", n, uniaIP.u8[0], uniaIP.u8[1],  uniaIP.u8[2],  uniaIP.u8[3], adres_eth[0], adres_eth[1], adres_eth[2], adres_eth[3], adres_eth[4], adres_eth[5]);
+			sprintf(chNapis, "ARP[%d].IP: %d.%d.%d.%d", n, uniaIP.u8[0], uniaIP.u8[1],  uniaIP.u8[2],  uniaIP.u8[3]);
+			BSP_LCD_DisplayStringAt(5, 160+n*15, (uint8_t*)chNapis, LEFT_MODE);
+		}
+
 	}
 
 	//przycisk fraktal

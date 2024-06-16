@@ -94,6 +94,7 @@ err_t etharp_remove_static_entry(const ip4_addr_t *ipaddr);
 #endif /* ETHARP_SUPPORT_STATIC_ENTRIES */
 
 void etharp_input(struct pbuf *p, struct netif *netif);
+void PobierzEthArp(unsigned char n, uint32_t *nIpAdr);
 
 #ifdef __cplusplus
 }
