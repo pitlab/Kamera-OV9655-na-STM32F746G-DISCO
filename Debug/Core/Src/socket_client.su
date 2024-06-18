@@ -1,0 +1,2 @@
+../Core/Src/socket_client.c:24:6:WriteLWIPClientTask	4176	static
+../Core/Src/socket_client.c:150:6:ReadLWIPClientTask	4152	static

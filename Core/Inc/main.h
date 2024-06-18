@@ -31,7 +31,9 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "FreeRTOS.h"
+#include "task.h"
+#include "cmsis_os.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -391,8 +393,15 @@ void Error_Handler(void);
 #define ARDUINO_MOSI_PWM_D11_Pin GPIO_PIN_15
 #define ARDUINO_MOSI_PWM_D11_GPIO_Port GPIOB
 
-/* USER CODE BEGIN Private defines */
+//tryby wyświetlania w pętli głównej
+#define TW_JULIA		1
+#define TW_MONITOR		2
+#define TW_TERMINAL		3
+#define DLUGOSC_NAPISU	70
 
+
+/* USER CODE BEGIN Private defines */
+extern osMessageQId sockfd_queueHandle;
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
