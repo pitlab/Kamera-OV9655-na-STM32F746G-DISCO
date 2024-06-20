@@ -254,7 +254,7 @@ HAL_StatusTypeDef BSP_CAMERA_SnapshotStart(uint8_t *buff)
   hDcmiHandler.DMA_Handle->Instance->CR &= ~DMA_SxCR_CIRC;	//wyłącz tryb DMA_CIRCULAR
   stan = HAL_DMA_GetState(hDcmiHandler.DMA_Handle);
     if (stan != HAL_DMA_STATE_READY)
-  	  HAL_DMA_Abort(hDcmiHandler.DMA_Handle);
+		HAL_DMA_Abort(hDcmiHandler.DMA_Handle);
   return HAL_DCMI_Start_DMA(&hDcmiHandler, DCMI_MODE_SNAPSHOT, (uint32_t)buff, GetSize(CameraCurrentResolution));
 }
 
@@ -663,7 +663,10 @@ void DCMI_IRQHandler(void)                   // DCMI
 
 void DMA2_Stream1_IRQHandler(void)           /* DMA2 Stream 1                */
 {
+	extern uint8_t chZdjecieGotowe;
+
 	HAL_DMA_IRQHandler(&hdma_handler);
+	chZdjecieGotowe = 1;
 }
 
 /**

@@ -122,7 +122,8 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Core/Src/../../Drivers/BSP/STM32746G-Discovery/../Components/ov9655/ov9655.h \
  ../Core/Src/../../Drivers/BSP/STM32746G-Discovery/../Components/ov9655/../Common/camera.h \
  ../Middlewares/Third_Party/LwIP/src/include/lwip/ip4_addr.h \
- ../Core/Inc/conf_network.h ../Core/Inc/socket_client.h
+ ../Core/Inc/conf_network.h ../Core/Inc/socket_client.h \
+ ../Core/Inc/analiza_obrazu.h
 ../Core/Inc/main.h:
 ../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal.h:
 ../Core/Inc/stm32f7xx_hal_conf.h:
@@ -249,3 +250,4 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Middlewares/Third_Party/LwIP/src/include/lwip/ip4_addr.h:
 ../Core/Inc/conf_network.h:
 ../Core/Inc/socket_client.h:
+../Core/Inc/analiza_obrazu.h:

@@ -38,7 +38,16 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-
+#define KLAW_POZ_X1	330
+#define KLAW_POZ_X2	405
+#define KLAW_ROZM_X	(((480-KLAW_POZ_X1)/2)-6)
+#define KLAW_ROZM_Y	26
+#define KLAW_ROZSTAW_Y	(KLAW_ROZM_Y + 8)
+#define NAPIS_OFFY	(KLAW_ROZM_Y/2 - 6)
+#define KLAW1_Y	25
+//#define KLAW2_Y	65
+//#define KLAW3_Y	125
+//#define KLAW4_Y	175
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/

@@ -33,6 +33,7 @@
 #include "ip4_addr.h"
 #include "conf_network.h"
 #include "socket_client.h"
+#include "analiza_obrazu.h"
 //#include "apps/httpd.h"
 //#include "lwip/apps/httpd.h"
 /* USER CODE END Includes */
@@ -49,15 +50,7 @@ union _uniaIP
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define KLAW_POZ_X	340
-#define KLAW_SROD	(340+((480-340)/2))
-#define KLAW_ROZ_X	(480-340-5)
-#define KLAW_ROZ_Y	36
-#define NAPIS_OFFY	KLAW_ROZ_Y/2 - 6
-#define KLAW1_Y	25
-#define KLAW2_Y	75
-#define KLAW3_Y	125
-#define KLAW4_Y	175
+
 
 /* USER CODE END PD */
 
@@ -111,6 +104,7 @@ osThreadId lwipWriteTaskHandle;
 osThreadId lwipReadTaskHandle;
 uint8_t chBuforTerminala[2048] __attribute__((section(".BuforKamery")));
 uint8_t chRodzajWyswietlania = 0;
+volatile uint8_t chZdjecieGotowe;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -141,6 +135,7 @@ static void MX_TIM12_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_USART6_UART_Init(void);
 void StartDefaultTask(void const * argument);
+void WykryjNacisniecie(TS_StateTypeDef *TS_State, uint8_t *chTabPrzyciskow);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -246,6 +241,7 @@ int main(void)
   BSP_LCD_DisplayOn();
 
   uint8_t chNapis[45];
+  uint8_t chNapisyPrzyciskow[8][6] = {"Fotka", "Film>", "FotCB", "KrawR", "MonIP", "Julia", "KrawS", "dddd"};
 
   BSP_LCD_SetTextColor(LCD_COLOR_BLUE);
   sprintf((char*)chNapis, "AutoPitLot2 na STM32F746G-DISCO @%lu MHz", (uint32_t)HAL_RCC_GetSysClockFreq()/1000000);
@@ -253,24 +249,27 @@ int main(void)
 
   //przyciski tło
   BSP_LCD_SetTextColor(LCD_COLOR_GREEN);
-  BSP_LCD_FillRect(KLAW_POZ_X, KLAW1_Y, KLAW_ROZ_X, KLAW_ROZ_Y);		//ramka przycisku robienia zdjecia
-  BSP_LCD_FillRect(KLAW_POZ_X, KLAW2_Y, KLAW_ROZ_X, KLAW_ROZ_Y);		//ramka przycisku startu filmu
-  BSP_LCD_FillRect(KLAW_POZ_X, KLAW3_Y, KLAW_ROZ_X, KLAW_ROZ_Y);		//ramka przycisku stopu filmu
-  BSP_LCD_FillRect(KLAW_POZ_X, KLAW4_Y, KLAW_ROZ_X, KLAW_ROZ_Y);		//ramka przycisku stopu filmu
+  for (uint8_t n=0; n<4; n++)
+  {
+	  BSP_LCD_FillRect(KLAW_POZ_X1, KLAW1_Y + n * KLAW_ROZSTAW_Y, KLAW_ROZM_X, KLAW_ROZM_Y);
+	  BSP_LCD_FillRect(KLAW_POZ_X2, KLAW1_Y + n * KLAW_ROZSTAW_Y, KLAW_ROZM_X, KLAW_ROZM_Y);
+  }
 
   //przyciski ramka
   BSP_LCD_SetTextColor(LCD_COLOR_BLUE);
-  BSP_LCD_DrawRect(KLAW_POZ_X, KLAW1_Y, KLAW_ROZ_X, KLAW_ROZ_Y);		//ramka przycisku robienia zdjecia
-  BSP_LCD_DrawRect(KLAW_POZ_X, KLAW2_Y, KLAW_ROZ_X, KLAW_ROZ_Y);		//ramka przycisku startu filmu
-  BSP_LCD_DrawRect(KLAW_POZ_X, KLAW3_Y, KLAW_ROZ_X, KLAW_ROZ_Y);		//ramka przycisku stopu filmu
-  BSP_LCD_DrawRect(KLAW_POZ_X, KLAW4_Y, KLAW_ROZ_X, KLAW_ROZ_Y);		//ramka przycisku demo
+  for (uint8_t n=0; n<4; n++)
+  {
+	  BSP_LCD_DrawRect(KLAW_POZ_X1, KLAW1_Y + n * KLAW_ROZSTAW_Y, KLAW_ROZM_X, KLAW_ROZM_Y);
+	  BSP_LCD_DrawRect(KLAW_POZ_X2, KLAW1_Y + n * KLAW_ROZSTAW_Y, KLAW_ROZM_X, KLAW_ROZM_Y);
+  }
 
   BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
   BSP_LCD_SetBackColor(LCD_COLOR_GREEN);
-  BSP_LCD_DisplayStringAt(KLAW_POZ_X+5, KLAW1_Y+NAPIS_OFFY, ( uint8_t*)"Zdjecie", LEFT_MODE);
-  BSP_LCD_DisplayStringAt(KLAW_POZ_X+5, KLAW2_Y+NAPIS_OFFY, ( uint8_t*)"Start Film", LEFT_MODE);
-  BSP_LCD_DisplayStringAt(KLAW_POZ_X+5, KLAW3_Y+NAPIS_OFFY, ( uint8_t*)"Monitor IP", LEFT_MODE);
-  BSP_LCD_DisplayStringAt(KLAW_POZ_X+5, KLAW4_Y+NAPIS_OFFY, ( uint8_t*)"Julia",  LEFT_MODE);
+  for (uint8_t n=0; n<4; n++)
+  {
+	  BSP_LCD_DisplayStringAt(KLAW_POZ_X1+5, KLAW1_Y + NAPIS_OFFY + n * KLAW_ROZSTAW_Y, &chNapisyPrzyciskow[2*n+0][0], LEFT_MODE);
+	  BSP_LCD_DisplayStringAt(KLAW_POZ_X2+5, KLAW1_Y + NAPIS_OFFY + n * KLAW_ROZSTAW_Y, &chNapisyPrzyciskow[2*n+1][0], LEFT_MODE);
+  }
   BSP_LCD_SetBackColor(LCD_COLOR_WHITE);
 
   //obraz
@@ -1697,15 +1696,19 @@ void StartDefaultTask(void const * argument)
   MX_LWIP_Init();
   /* USER CODE BEGIN 5 */
   //const char* message = "Hello UDP message!\n\r";
-  //static uint8_t bufor_kamery[1280 * 1024 * 2] __attribute__((section(".BuforKamery")));
+  static uint8_t bufor_kamery[1280 * 1024 * 2] __attribute__((section(".BuforKamery")));
   static uint8_t bufor_okna[320 * 240 * 2] __attribute__((section(".BuforLCD1")));
   //static uint8_t bufor_ekranu[480 * 272 * 4] __attribute__((section(".BuforLCD0")));
+  static uint8_t bufor_czarnobialy[320 * 240] __attribute__((section(".BuforKamery")));
+  static uint8_t bufor_cbOut[320 * 240] __attribute__((section(".BuforKamery")));
   char chNapis[DLUGOSC_NAPISU];
   uint8_t chZrobione = 0;
   uint8_t n, chFilm = 0;
   TS_StateTypeDef touch;
   extern float fImag;
   uint8_t chWskWiersza = 0;
+  uint8_t chTabPrzyciskow[8];
+  //uint32_t nHistBit[16];
 
   uint32_t nCzas;
 
@@ -1768,15 +1771,20 @@ void StartDefaultTask(void const * argument)
 
     BSP_LCD_SelectLayer(0);
     sprintf(chNapis, "X=%d, Y=%d  ", touch.touchX[0], touch.touchY[0]);
-    BSP_LCD_DisplayStringAt(KLAW_POZ_X, 220, (uint8_t*)chNapis, LEFT_MODE);
+    BSP_LCD_DisplayStringAt(KLAW_POZ_X1, 220, (uint8_t*)chNapis, LEFT_MODE);
     sprintf(chNapis, "T=%d, W=%d  ", touch.touchDetected, touch.touchWeight[0]);
-    BSP_LCD_DisplayStringAt(KLAW_POZ_X, 240, (uint8_t*)chNapis, LEFT_MODE);
+    BSP_LCD_DisplayStringAt(KLAW_POZ_X1, 240, (uint8_t*)chNapis, LEFT_MODE);
 
-    if (touch.touchDetected == 0)
+    if (!touch.touchDetected)
+    {
     	chZrobione = 0;
+    }
+
+
+	WykryjNacisniecie(&touch, chTabPrzyciskow);	//wykryj naciśnięcie w obrębie zdefiniowanych przycisków
 
     //przycisk zrób zdjęcie
-    if ((touch.touchDetected >= 1) && (touch.touchX[0] >= KLAW_POZ_X)  && (touch.touchY[0] >= KLAW1_Y) && (touch.touchY[0] < (KLAW1_Y + KLAW_ROZ_Y)) && !chZrobione)
+    if (chTabPrzyciskow[0] && !chZrobione)
     {
     	BSP_CAMERA_SnapshotStart(bufor_okna);
     	chZrobione = 1;
@@ -1784,18 +1792,18 @@ void StartDefaultTask(void const * argument)
     }
 
     //przycisk rozpocznij/zakończ film
-    if ((touch.touchDetected >= 1) && (touch.touchX[0] >= KLAW_POZ_X)  && (touch.touchY[0] >= KLAW2_Y) && (touch.touchY[0] < (KLAW2_Y + KLAW_ROZ_Y)) && !chZrobione)
+    if (chTabPrzyciskow[1] && !chZrobione)
 	{
     	if (chFilm)
     	{
     		BSP_CAMERA_Suspend();
-    		sprintf(chNapis, "Start Film");
+    		sprintf(chNapis, "Film>");
 			chFilm = 0;
     	}
     	else
     	{
 			BSP_CAMERA_ContinuousStart(bufor_okna);
-			sprintf(chNapis, "Stop Film ");
+			sprintf(chNapis, "Film|");
 			chFilm = 1;
     	}
 
@@ -1803,14 +1811,72 @@ void StartDefaultTask(void const * argument)
 		BSP_LCD_SelectLayer(0);
 		BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
 		BSP_LCD_SetBackColor(LCD_COLOR_GREEN);
-		BSP_LCD_DisplayStringAt(KLAW_POZ_X+5, KLAW2_Y+NAPIS_OFFY, (uint8_t*)chNapis, LEFT_MODE);
+		BSP_LCD_DisplayStringAt(KLAW_POZ_X2+5, KLAW1_Y + NAPIS_OFFY, (uint8_t*)chNapis, LEFT_MODE);
 		BSP_LCD_SetBackColor(LCD_COLOR_WHITE);	//przywróć kolor tła
 		chRodzajWyswietlania = 0;
     	chZrobione = 1;
 	}
 
+    //konwersja kolor -> C/B
+    if (chTabPrzyciskow[2] && !chZrobione)
+    {
+    	//for (uint8_t x=0; x<16; x++)
+    		//nHistBit[x] = 0;
+
+    	chZdjecieGotowe = 0;
+    	BSP_CAMERA_SnapshotStart(bufor_kamery);
+    	do; while (!chZdjecieGotowe);
+    	uint8_t pix1, pix2, pixCB, pixRB, pixG;
+		for (uint32_t n=0; n<320*240; n++)
+		{
+			pix1 = bufor_kamery[2*n+0];		//B+G
+			pix2 = bufor_kamery[2*n+1];		//G+R
+
+			/*for (uint8_t x=0; x<8; x++)
+			{
+				nHistBit[x+0] += (pix1 >> x) & 0x01;
+				nHistBit[x+8] += (pix2 >> x) & 0x01;
+			}*/
+
+			//bity czerwony i niebieski mają skalę 5-bitową (32), zielony 6-bitową (64).
+			pixCB = (pix1 >> 3) + (pix2 & 0x1F) + ((pix1 & 0x07) << 3) + (pix2 >> 5);		//((R32 + B32) + G64)
+			bufor_czarnobialy[n] = pixCB;
+
+			pixRB = pixCB >> 2;	//składowe: czerwona i niebieska
+			pixG  = pixCB >> 1;	//składowa zielona
+			bufor_okna[2*n+0] = ((pixG & 0x07) << 5) + pixRB;
+			bufor_okna[2*n+1] = (pixRB << 3) + (pixG >> 3);
+		}
+		chZrobione = 1;
+		chRodzajWyswietlania = 0;
+
+		/* osDelay(1);
+		//rysuj histogram na  ekranie
+		BSP_LCD_SelectLayer(1);
+		BSP_LCD_SetTextColor(LCD_COLOR_GREEN);
+		uint16_t sHistVal;
+		for (uint8_t x=0; x<16; x++)
+		{
+			sHistVal = (uint16_t)(nHistBit[x] >> 8);
+			BSP_LCD_FillRect(x*20+2, 240-sHistVal, 16, sHistVal);
+		}*/
+    }
+
+    //wykrywanie krawędzi
+    if (chTabPrzyciskow[3] && !chZrobione)
+    {
+    	chZdjecieGotowe = 0;
+		//BSP_CAMERA_SnapshotStart(bufor_kamery);
+		//do; while (!chZdjecieGotowe);
+
+    	DetekcjaKrawedziRoberts(bufor_czarnobialy, bufor_cbOut, 320, 240);
+    	KonwersjaCB7doRGB565(bufor_cbOut, bufor_okna, 320*240);
+		chZrobione = 1;
+		chRodzajWyswietlania = 0;
+    }
+
 	//przycisk Monitor IP
-	if ((touch.touchDetected >= 1) && (touch.touchX[0] >= KLAW_POZ_X)  && (touch.touchY[0] >= KLAW3_Y) && (touch.touchY[0] < (KLAW3_Y + KLAW_ROZ_Y)) && !chZrobione)
+	if (chTabPrzyciskow[4] && !chZrobione)
 	{
 		BSP_LCD_SelectLayer(1);
 		BSP_LCD_Clear(LCD_COLOR_BLACK);
@@ -1819,11 +1885,36 @@ void StartDefaultTask(void const * argument)
 	}
 
 	//przycisk fraktal
-	if ((touch.touchDetected >= 1) && (touch.touchX[0] >= KLAW_POZ_X)  && (touch.touchY[0] >= KLAW4_Y) && (touch.touchY[0] < (KLAW4_Y + KLAW_ROZ_Y)) && !chZrobione)
+	if (chTabPrzyciskow[5] && !chZrobione)
 	{
 		InitFraktal(0);
 		chRodzajWyswietlania = TW_JULIA;
 		chZrobione = 1;
+	}
+
+	//cccc
+	if (chTabPrzyciskow[6] && !chZrobione)
+	{
+		for (uint32_t n=0; n<320*240; n++)
+		{
+			bufor_okna[2*n+0] = 0x00;
+			bufor_okna[2*n+1] = 0xF8;
+		}
+		//memcpy (bufor_okna, bufor_kamery, 320*240*2);
+		chZrobione = 1;
+		chRodzajWyswietlania = 0;
+	}
+
+	//dddd
+	if (chTabPrzyciskow[7] && !chZrobione)
+	{
+		chZdjecieGotowe = 0;
+		BSP_CAMERA_SnapshotStart(bufor_kamery);
+		do; while (!chZdjecieGotowe);
+
+		KonwersjaRGB565doCB7(bufor_kamery, bufor_okna, bufor_czarnobialy, 320*240);
+		chZrobione = 1;
+		chRodzajWyswietlania = 0;
 	}
 
 	//cykliczne wyświetlanie
@@ -1903,6 +1994,26 @@ void StartDefaultTask(void const * argument)
 }
 
 
+// Funkcja wykrywa nacisnięcie przycisku ekranowego
+//zwraca wynik w postaci tabeli gdzie 1 oznacza przycisk naciśnięty
+void WykryjNacisniecie(TS_StateTypeDef *touch, uint8_t *chTabPrzyc)
+{
+	uint8_t n;
+
+	for (n=0; n<8; n++)
+		*(chTabPrzyc + n) = 0;	//inicjuj tablicę
+
+	if (!touch->touchDetected)
+		return;
+
+	for (n=0; n<4; n++)
+	{
+		if ((touch->touchX[0] >= KLAW_POZ_X1)  && (touch->touchX[0] < KLAW_POZ_X2)  && (touch->touchY[0] >= (KLAW1_Y + n*KLAW_ROZSTAW_Y)) && (touch->touchY[0] < (KLAW1_Y + n*KLAW_ROZSTAW_Y + KLAW_ROZM_Y)))
+			*(chTabPrzyc + n * 2 + 0) = 1;
+		if ((touch->touchX[0] >= KLAW_POZ_X2)  && (touch->touchY[0] >= (KLAW1_Y + n*KLAW_ROZSTAW_Y)) && (touch->touchY[0] < (KLAW1_Y + n*KLAW_ROZSTAW_Y + KLAW_ROZM_Y)))
+			*(chTabPrzyc + n * 2 + 1) = 1;
+	}
+}
 
  /* MPU Configuration */
 

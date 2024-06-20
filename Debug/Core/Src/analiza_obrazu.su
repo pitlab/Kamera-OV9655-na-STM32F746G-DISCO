@@ -1,0 +1,4 @@
+../Core/Src/analiza_obrazu.c:22:6:KonwersjaRGB565doCB7	40	static
+../Core/Src/analiza_obrazu.c:51:6:KonwersjaCB7doRGB565	32	static
+../Core/Src/analiza_obrazu.c:78:6:DetekcjaKrawedziRoberts	48	static
+../Core/Src/analiza_obrazu.c:112:6:DetekcjaKrawedzi	56	static
