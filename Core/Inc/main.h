@@ -45,6 +45,8 @@ extern "C" {
 #define KLAW_ROZSTAW_Y	(KLAW_ROZM_Y + 8)
 #define NAPIS_OFFY	(KLAW_ROZM_Y/2 - 6)
 #define KLAW1_Y	25
+
+#define LICZBA_PRZYCISKOW	6
 //#define KLAW2_Y	65
 //#define KLAW3_Y	125
 //#define KLAW4_Y	175

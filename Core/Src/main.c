@@ -241,7 +241,7 @@ int main(void)
   BSP_LCD_DisplayOn();
 
   uint8_t chNapis[45];
-  uint8_t chNapisyPrzyciskow[8][6] = {"Fotka", "Film>", "FotCB", "KrawR", "MonIP", "Julia", "KrawS", "dddd"};
+  uint8_t chNapisyPrzyciskow[2*LICZBA_PRZYCISKOW][6] = {"Fotka", "Film>", "FotCB", "KrawR", "MonIP", "Julia", "KrawS", "HisCB", "HisRG", "HisKr"};
 
   BSP_LCD_SetTextColor(LCD_COLOR_BLUE);
   sprintf((char*)chNapis, "AutoPitLot2 na STM32F746G-DISCO @%lu MHz", (uint32_t)HAL_RCC_GetSysClockFreq()/1000000);
@@ -249,7 +249,7 @@ int main(void)
 
   //przyciski tło
   BSP_LCD_SetTextColor(LCD_COLOR_GREEN);
-  for (uint8_t n=0; n<4; n++)
+  for (uint8_t n=0; n<LICZBA_PRZYCISKOW; n++)
   {
 	  BSP_LCD_FillRect(KLAW_POZ_X1, KLAW1_Y + n * KLAW_ROZSTAW_Y, KLAW_ROZM_X, KLAW_ROZM_Y);
 	  BSP_LCD_FillRect(KLAW_POZ_X2, KLAW1_Y + n * KLAW_ROZSTAW_Y, KLAW_ROZM_X, KLAW_ROZM_Y);
@@ -257,7 +257,7 @@ int main(void)
 
   //przyciski ramka
   BSP_LCD_SetTextColor(LCD_COLOR_BLUE);
-  for (uint8_t n=0; n<4; n++)
+  for (uint8_t n=0; n<LICZBA_PRZYCISKOW; n++)
   {
 	  BSP_LCD_DrawRect(KLAW_POZ_X1, KLAW1_Y + n * KLAW_ROZSTAW_Y, KLAW_ROZM_X, KLAW_ROZM_Y);
 	  BSP_LCD_DrawRect(KLAW_POZ_X2, KLAW1_Y + n * KLAW_ROZSTAW_Y, KLAW_ROZM_X, KLAW_ROZM_Y);
@@ -265,7 +265,7 @@ int main(void)
 
   BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
   BSP_LCD_SetBackColor(LCD_COLOR_GREEN);
-  for (uint8_t n=0; n<4; n++)
+  for (uint8_t n=0; n<LICZBA_PRZYCISKOW; n++)
   {
 	  BSP_LCD_DisplayStringAt(KLAW_POZ_X1+5, KLAW1_Y + NAPIS_OFFY + n * KLAW_ROZSTAW_Y, &chNapisyPrzyciskow[2*n+0][0], LEFT_MODE);
 	  BSP_LCD_DisplayStringAt(KLAW_POZ_X2+5, KLAW1_Y + NAPIS_OFFY + n * KLAW_ROZSTAW_Y, &chNapisyPrzyciskow[2*n+1][0], LEFT_MODE);
@@ -1707,8 +1707,7 @@ void StartDefaultTask(void const * argument)
   TS_StateTypeDef touch;
   extern float fImag;
   uint8_t chWskWiersza = 0;
-  uint8_t chTabPrzyciskow[8];
-  //uint32_t nHistBit[16];
+  uint8_t chTabPrzyciskow[2*LICZBA_PRZYCISKOW];
 
   uint32_t nCzas;
 
@@ -1743,44 +1742,23 @@ void StartDefaultTask(void const * argument)
 
   osDelay(1000);
 
-  //ip_addr_t PC_IPADDR;
-  //IP_ADDR4(&PC_IPADDR, 192, 168, 1, 111);
-  //struct pbuf* udp_buffer = NULL;
-  //struct udp_pcb* my_udp = udp_new();
-  //udp_connect(my_udp, &PC_IPADDR, 55151);
-
-  //struct eth_addr adres_eth;
-  //extern int etharp_get_entry(size_t i, ip4_addr_t **ipaddr, struct netif **netif, struct eth_addr **eth_ret);
-
-
-
   /* Infinite loop */
   for (;;) {
     osDelay(100);
-    /* !! PBUF_RAM is critical for correct operation !! */
-   /* udp_buffer = pbuf_alloc(PBUF_TRANSPORT, strlen(message), PBUF_RAM);
-
-    if (udp_buffer != NULL) {
-      memcpy(udp_buffer->payload, message, strlen(message));
-      udp_send(my_udp, udp_buffer);
-      pbuf_free(udp_buffer);
-    }*/
 
     BSP_LED_Toggle(0);
     BSP_TS_GetState(&touch);
 
     BSP_LCD_SelectLayer(0);
     sprintf(chNapis, "X=%d, Y=%d  ", touch.touchX[0], touch.touchY[0]);
-    BSP_LCD_DisplayStringAt(KLAW_POZ_X1, 220, (uint8_t*)chNapis, LEFT_MODE);
+    BSP_LCD_DisplayStringAt(KLAW_POZ_X1, 230, (uint8_t*)chNapis, LEFT_MODE);
     sprintf(chNapis, "T=%d, W=%d  ", touch.touchDetected, touch.touchWeight[0]);
-    BSP_LCD_DisplayStringAt(KLAW_POZ_X1, 240, (uint8_t*)chNapis, LEFT_MODE);
+    BSP_LCD_DisplayStringAt(KLAW_POZ_X1, 250, (uint8_t*)chNapis, LEFT_MODE);
 
     if (!touch.touchDetected)
     {
     	chZrobione = 0;
     }
-
-
 	WykryjNacisniecie(&touch, chTabPrzyciskow);	//wykryj naciśnięcie w obrębie zdefiniowanych przycisków
 
     //przycisk zrób zdjęcie
@@ -1820,46 +1798,20 @@ void StartDefaultTask(void const * argument)
     //konwersja kolor -> C/B
     if (chTabPrzyciskow[2] && !chZrobione)
     {
-    	//for (uint8_t x=0; x<16; x++)
-    		//nHistBit[x] = 0;
-
     	chZdjecieGotowe = 0;
     	BSP_CAMERA_SnapshotStart(bufor_kamery);
     	do; while (!chZdjecieGotowe);
-    	uint8_t pix1, pix2, pixCB, pixRB, pixG;
-		for (uint32_t n=0; n<320*240; n++)
-		{
-			pix1 = bufor_kamery[2*n+0];		//B+G
-			pix2 = bufor_kamery[2*n+1];		//G+R
 
-			/*for (uint8_t x=0; x<8; x++)
-			{
-				nHistBit[x+0] += (pix1 >> x) & 0x01;
-				nHistBit[x+8] += (pix2 >> x) & 0x01;
-			}*/
+    	nCzas = HAL_GetTick();
+    	KonwersjaRGB565doCB7(bufor_kamery, bufor_okna, bufor_czarnobialy, 320*240);
+    	nCzas = MinalCzas(nCzas);
 
-			//bity czerwony i niebieski mają skalę 5-bitową (32), zielony 6-bitową (64).
-			pixCB = (pix1 >> 3) + (pix2 & 0x1F) + ((pix1 & 0x07) << 3) + (pix2 >> 5);		//((R32 + B32) + G64)
-			bufor_czarnobialy[n] = pixCB;
-
-			pixRB = pixCB >> 2;	//składowe: czerwona i niebieska
-			pixG  = pixCB >> 1;	//składowa zielona
-			bufor_okna[2*n+0] = ((pixG & 0x07) << 5) + pixRB;
-			bufor_okna[2*n+1] = (pixRB << 3) + (pixG >> 3);
-		}
+    	BSP_LCD_SelectLayer(1);
+		BSP_LCD_SetTextColor(LCD_COLOR_GREEN);
+		sprintf(chNapis, "t=%ldms ", nCzas);
+		BSP_LCD_DisplayStringAt(260, 225, (uint8_t*)chNapis, LEFT_MODE);
 		chZrobione = 1;
 		chRodzajWyswietlania = 0;
-
-		/* osDelay(1);
-		//rysuj histogram na  ekranie
-		BSP_LCD_SelectLayer(1);
-		BSP_LCD_SetTextColor(LCD_COLOR_GREEN);
-		uint16_t sHistVal;
-		for (uint8_t x=0; x<16; x++)
-		{
-			sHistVal = (uint16_t)(nHistBit[x] >> 8);
-			BSP_LCD_FillRect(x*20+2, 240-sHistVal, 16, sHistVal);
-		}*/
     }
 
     //wykrywanie krawędzi
@@ -1868,9 +1820,14 @@ void StartDefaultTask(void const * argument)
     	chZdjecieGotowe = 0;
 		//BSP_CAMERA_SnapshotStart(bufor_kamery);
 		//do; while (!chZdjecieGotowe);
-
-    	DetekcjaKrawedziRoberts(bufor_czarnobialy, bufor_cbOut, 320, 240);
+    	nCzas = HAL_GetTick();
+    	DetekcjaKrawedziRoberts(bufor_czarnobialy, bufor_cbOut, 320, 240, 32);
     	KonwersjaCB7doRGB565(bufor_cbOut, bufor_okna, 320*240);
+    	nCzas = MinalCzas(nCzas);
+    	BSP_LCD_SelectLayer(1);
+    	BSP_LCD_SetTextColor(LCD_COLOR_GREEN);
+    	sprintf(chNapis, "t=%ldms ", nCzas);
+    	BSP_LCD_DisplayStringAt(260, 225, (uint8_t*)chNapis, LEFT_MODE);
 		chZrobione = 1;
 		chRodzajWyswietlania = 0;
     }
@@ -1905,14 +1862,74 @@ void StartDefaultTask(void const * argument)
 		chRodzajWyswietlania = 0;
 	}
 
-	//dddd
+	//histogram czarno-biały
 	if (chTabPrzyciskow[7] && !chZrobione)
 	{
-		chZdjecieGotowe = 0;
-		BSP_CAMERA_SnapshotStart(bufor_kamery);
-		do; while (!chZdjecieGotowe);
+		uint8_t hist[129];
+		nCzas = HAL_GetTick();
+		HistogramCB7(bufor_czarnobialy, hist, 320*240);
+		nCzas = MinalCzas(nCzas);
 
-		KonwersjaRGB565doCB7(bufor_kamery, bufor_okna, bufor_czarnobialy, 320*240);
+		//rysuj histogram na  ekranie
+		BSP_LCD_SelectLayer(1);
+		BSP_LCD_SetTextColor(LCD_COLOR_GREEN);
+		for (uint8_t x=0; x<129; x++)
+		{
+			BSP_LCD_FillRect(x*2, 240 - *(hist+x), 1, *(hist+x));
+		}
+		sprintf(chNapis, "t=%ldms ", nCzas);
+		BSP_LCD_DisplayStringAt(260, 225, (uint8_t*)chNapis, LEFT_MODE);
+		chZrobione = 1;
+		chRodzajWyswietlania = 0;
+	}
+
+	//histogram kolorowy
+	if (chTabPrzyciskow[8] && !chZrobione)
+	{
+		uint8_t histR[32], histG[64], histB[32];
+		nCzas = HAL_GetTick();
+		HistogramRGB565(bufor_kamery, histR, histG, histB, 320*240);
+		nCzas = MinalCzas(nCzas);
+
+		//rysuj histogram na  ekranie
+		BSP_LCD_SelectLayer(1);
+		BSP_LCD_SetTextColor(LCD_COLOR_RED);
+		for (uint8_t x=0; x<32; x++)
+			BSP_LCD_FillRect(x*2, 240- *(histR+x), 1, *(histR+x));
+
+		BSP_LCD_SetTextColor(LCD_COLOR_GREEN);
+		for (uint8_t x=0; x<64; x++)
+			BSP_LCD_FillRect(x*2+64, 240- *(histG+x), 1, *(histG+x));
+
+		BSP_LCD_SetTextColor(LCD_COLOR_BLUE);
+		for (uint8_t x=0; x<32; x++)
+			BSP_LCD_FillRect(x*2+192, 240- *(histB+x), 1, *(histB+x));
+
+		sprintf(chNapis, "t=%ldms ", nCzas);
+		BSP_LCD_DisplayStringAt(260, 225, (uint8_t*)chNapis, LEFT_MODE);
+		chZrobione = 1;
+		chRodzajWyswietlania = 0;
+	}
+
+	//histogram po detekcji krawędzi
+	if (chTabPrzyciskow[9] && !chZrobione)
+	{
+		uint8_t hist[129];
+
+		nCzas = HAL_GetTick();
+		HistogramCB7(bufor_cbOut, hist, 320*240);
+		nCzas = MinalCzas(nCzas);
+
+
+
+		//rysuj histogram na  ekranie
+		BSP_LCD_SelectLayer(1);
+		BSP_LCD_SetTextColor(LCD_COLOR_GREEN);
+		for (uint8_t x=0; x<129; x++)
+			BSP_LCD_FillRect(x*2, 240- *(hist+x), 1, *(hist+x));
+
+		sprintf(chNapis, "t=%ldms ", nCzas);
+		BSP_LCD_DisplayStringAt(260, 225, (uint8_t*)chNapis, LEFT_MODE);
 		chZrobione = 1;
 		chRodzajWyswietlania = 0;
 	}
@@ -1928,7 +1945,7 @@ void StartDefaultTask(void const * argument)
 
 		BSP_LCD_SelectLayer(1);
 		sprintf(chNapis, "Julia: t=%ldms, c=%.3f ", nCzas, fImag);
-		BSP_LCD_DisplayStringAt(6, 224, (uint8_t*)chNapis, LEFT_MODE);
+		BSP_LCD_DisplayStringAt(6, 225, (uint8_t*)chNapis, LEFT_MODE);
 		break;
 
 	case TW_MONITOR:
@@ -2000,13 +2017,13 @@ void WykryjNacisniecie(TS_StateTypeDef *touch, uint8_t *chTabPrzyc)
 {
 	uint8_t n;
 
-	for (n=0; n<8; n++)
+	for (n=0; n<2*LICZBA_PRZYCISKOW; n++)
 		*(chTabPrzyc + n) = 0;	//inicjuj tablicę
 
 	if (!touch->touchDetected)
 		return;
 
-	for (n=0; n<4; n++)
+	for (n=0; n<LICZBA_PRZYCISKOW; n++)
 	{
 		if ((touch->touchX[0] >= KLAW_POZ_X1)  && (touch->touchX[0] < KLAW_POZ_X2)  && (touch->touchY[0] >= (KLAW1_Y + n*KLAW_ROZSTAW_Y)) && (touch->touchY[0] < (KLAW1_Y + n*KLAW_ROZSTAW_Y + KLAW_ROZM_Y)))
 			*(chTabPrzyc + n * 2 + 0) = 1;

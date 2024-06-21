@@ -27,8 +27,8 @@
 ../Core/Src/main.c:1466:13:MX_FMC_Init	2
 ../Core/Src/main.c:1517:13:MX_GPIO_Init	1
 ../Core/Src/main.c:1676:6:vApplicationIdleHook	1
-../Core/Src/main.c:1690:6:StartDefaultTask	28
-../Core/Src/main.c:1999:6:WykryjNacisniecie	11
-../Core/Src/main.c:2020:6:MPU_Config	1
-../Core/Src/main.c:2066:6:HAL_TIM_PeriodElapsedCallback	2
-../Core/Src/main.c:2083:6:Error_Handler	1
+../Core/Src/main.c:1690:6:StartDefaultTask	35
+../Core/Src/main.c:2016:6:WykryjNacisniecie	11
+../Core/Src/main.c:2037:6:MPU_Config	1
+../Core/Src/main.c:2083:6:HAL_TIM_PeriodElapsedCallback	2
+../Core/Src/main.c:2100:6:Error_Handler	1
