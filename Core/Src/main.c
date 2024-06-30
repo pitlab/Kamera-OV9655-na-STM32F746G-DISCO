@@ -283,7 +283,7 @@ int main(void)
   BSP_LCD_DisplayOn();
 
   uint8_t chNapis[45];
-  uint8_t chNapisyPrzyciskow[2*LICZBA_PRZYCISKOW][6] = {"Fotka", "Film>", "Cz-Bi",  "HisCB", "KrawR", "KrawS", "HisKr", "HiRGB", "...", "MonIP", "Julia", "Mandl"};
+  uint8_t chNapisyPrzyciskow[2*LICZBA_PRZYCISKOW][6] = {"Fotka", "Film>", "Cz-Bi",  "HisCB", "KrawR", "KrawS", "HisKr", "Odszu", "Dylat", "MonIP", "Julia", "Mandl"};
 
   BSP_LCD_SetTextColor(LCD_COLOR_BLUE);
   sprintf((char*)chNapis, "OV9655 na STM32F746G-DISCO @%lu MHz", (uint32_t)HAL_RCC_GetSysClockFreq()/1000000);
@@ -1748,7 +1748,8 @@ void StartDefaultTask(void const * argument)
   uint8_t chWskWiersza = 0;
   uint8_t chTabPrzyciskow[2*LICZBA_PRZYCISKOW];
   uint8_t chErr;
-  uint32_t nCzas;
+  //uint32_t nCzas;
+  uint32_t nCzasOper, nCzasCalk;		//czas całkowity i czas operacji
 
   struct etharp_entry {
   #if ARP_QUEUEING
@@ -1838,43 +1839,43 @@ void StartDefaultTask(void const * argument)
     if (chTabPrzyciskow[2] && !chZrobione)
     {
     	BSP_CAMERA_SnapshotStart(bufor_kamery);
-		chZrobione = 1;
 		chRodzajWyswietlania = TW_OBRAZ_CB;
+		chZrobione = 1;
     }
 
 	//histogram czarno-biały
 	if (chTabPrzyciskow[3] && !chZrobione)
 	{
 		BSP_CAMERA_SnapshotStart(bufor_kamery);
-		chZrobione = 1;
 		chRodzajWyswietlania = TW_OBRAZ_CB_HIST;
+		chZrobione = 1;
 	}
 
     //wykrywanie krawędzi Robertsa
     if (chTabPrzyciskow[4] && !chZrobione)
     {
 		BSP_CAMERA_SnapshotStart(bufor_kamery);
-		chZrobione = 1;
 		chRodzajWyswietlania = TW_OBRAZ_KRAW_ROB;
+		chZrobione = 1;
     }
 
     //wykrywanie krawędzi Sobela
     if (chTabPrzyciskow[5] && !chZrobione)
     {
 		BSP_CAMERA_SnapshotStart(bufor_kamery);
-		chZrobione = 1;
 		chRodzajWyswietlania = TW_OBRAZ_KRAW_SOB;
+		chZrobione = 1;
     }
 
  	//histogram po detekcji krawędzi
  	if (chTabPrzyciskow[6] && !chZrobione)
  	{
  		BSP_CAMERA_SnapshotStart(bufor_kamery);
- 		chZrobione = 1;
  		chRodzajWyswietlania = TW_OBRAZ_KRAW_HIST;
+ 		chZrobione = 1;
  	}
 
-	//histogram kolorowy
+	/*/histogram kolorowy
 	if (chTabPrzyciskow[7] && !chZrobione)
 	{
 		uint8_t histR[32], histG[64], histB[32];
@@ -1900,10 +1901,23 @@ void StartDefaultTask(void const * argument)
 		BSP_LCD_DisplayStringAt(260, 225, (uint8_t*)chNapis, LEFT_MODE);
 		chZrobione = 1;
 		chRodzajWyswietlania = 0;
+	} */
+
+ 	//odszumianie
+	if (chTabPrzyciskow[7] && !chZrobione)
+	{
+		BSP_CAMERA_SnapshotStart(bufor_kamery);
+		chRodzajWyswietlania = TW_OBRAZ_ODSZUMIAN;
+		chZrobione = 1;
 	}
 
+	//dylatacja wykrytych krawędzi
  	if (chTabPrzyciskow[8] && !chZrobione)
- 	{;}
+ 	{
+		BSP_CAMERA_SnapshotStart(bufor_kamery);
+		chRodzajWyswietlania = TW_OBRAZ_DYLATACJA;
+		chZrobione = 1;
+ 	}
 
 	//przycisk Monitor IP
 	if (chTabPrzyciskow[9] && !chZrobione)
@@ -1996,14 +2010,14 @@ void StartDefaultTask(void const * argument)
 		chErr = CzekajNaBit(&chZdjecieGotowe, 1000);	//czekaj z timeoutem na zakończenie transferu DMA
 		if (!chErr)
 		{
-			nCzas = HAL_GetTick();
+			nCzasOper = HAL_GetTick();
 			KonwersjaRGB565doCB7((uint16_t*)bufor_kamery, bufor_czarnobialy, 320*240);
-			nCzas = MinalCzas(nCzas);
+			nCzasOper = MinalCzas(nCzasOper);
 			KonwersjaCB7doRGB565(bufor_czarnobialy, (uint16_t*)bufor_okna, 320*240);
 			BSP_LCD_SelectLayer(1);
 			BSP_LCD_SetTextColor(LCD_COLOR_GREEN);
-			sprintf(chNapis, "t=%ldms ", nCzas);
-			BSP_LCD_DisplayStringAt(260, 225, (uint8_t*)chNapis, LEFT_MODE);
+			sprintf(chNapis, "t=%ldms ", nCzasOper);
+			BSP_LCD_DisplayStringAt(200, 225, (uint8_t*)chNapis, LEFT_MODE);
 		}
 		BSP_CAMERA_SnapshotStart(bufor_kamery);
 		break;
@@ -2012,16 +2026,17 @@ void StartDefaultTask(void const * argument)
 		chErr = CzekajNaBit(&chZdjecieGotowe, 1000);	//czekaj z timeoutem na zakończenie transferu DMA
 		if (!chErr)
 		{
+			nCzasCalk = HAL_GetTick();
 			KonwersjaRGB565doCB7((uint16_t*)bufor_kamery, bufor_czarnobialy, 320*240);
-
-			nCzas = HAL_GetTick();
+			nCzasOper = HAL_GetTick();
 			DetekcjaKrawedziRoberts(bufor_czarnobialy, bufor_cbOut, 320, 240, 16);
+			nCzasOper = MinalCzas(nCzasOper);
 			KonwersjaCB7doRGB565(bufor_cbOut, (uint16_t*)bufor_okna, 320*240);
-			nCzas = MinalCzas(nCzas);
+			nCzasCalk = MinalCzas(nCzasCalk);
 			BSP_LCD_SelectLayer(1);
 			BSP_LCD_SetTextColor(LCD_COLOR_GREEN);
-			sprintf(chNapis, "t=%ldms ", nCzas);
-			BSP_LCD_DisplayStringAt(260, 225, (uint8_t*)chNapis, LEFT_MODE);
+			sprintf(chNapis, "to=%ld, tc=%ld ms ", nCzasOper, nCzasCalk);
+			BSP_LCD_DisplayStringAt(200, 225, (uint8_t*)chNapis, LEFT_MODE);
 		}
 		BSP_CAMERA_SnapshotStart(bufor_kamery);
 		break;
@@ -2030,16 +2045,17 @@ void StartDefaultTask(void const * argument)
 			chErr = CzekajNaBit(&chZdjecieGotowe, 1000);	//czekaj z timeoutem na zakończenie transferu DMA
 			if (!chErr)
 			{
+				nCzasCalk = HAL_GetTick();
 				KonwersjaRGB565doCB7((uint16_t*)bufor_kamery, bufor_czarnobialy, 320*240);
-
-				nCzas = HAL_GetTick();
+				nCzasOper = HAL_GetTick();
 				DetekcjaKrawedziSobel(bufor_czarnobialy, bufor_cbOut, 320, 240, 16);
+				nCzasOper = MinalCzas(nCzasOper);
 				KonwersjaCB7doRGB565(bufor_cbOut, (uint16_t*)bufor_okna, 320*240);
-				nCzas = MinalCzas(nCzas);
+				nCzasCalk = MinalCzas(nCzasCalk);
 				BSP_LCD_SelectLayer(1);
 				BSP_LCD_SetTextColor(LCD_COLOR_GREEN);
-				sprintf(chNapis, "t=%ldms ", nCzas);
-				BSP_LCD_DisplayStringAt(260, 225, (uint8_t*)chNapis, LEFT_MODE);
+				sprintf(chNapis, "to=%ld, tc=%ld ms ", nCzasOper, nCzasCalk);
+				BSP_LCD_DisplayStringAt(200, 225, (uint8_t*)chNapis, LEFT_MODE);
 			}
 			BSP_CAMERA_SnapshotStart(bufor_kamery);
 			break;
@@ -2049,11 +2065,12 @@ void StartDefaultTask(void const * argument)
 		if (!chErr)
 		{
 			uint8_t hist[129];
+			nCzasCalk = HAL_GetTick();
 			KonwersjaRGB565doCB7((uint16_t*)bufor_kamery, bufor_czarnobialy, 320*240);
 			KonwersjaCB7doRGB565(bufor_czarnobialy, (uint16_t*)bufor_okna, 320*240);
-			nCzas = HAL_GetTick();
+			nCzasOper = HAL_GetTick();
 			HistogramCB7(bufor_czarnobialy, hist, 320*240);
-			nCzas = MinalCzas(nCzas);
+			nCzasOper = MinalCzas(nCzasOper);
 
 			//rysuj histogram na  ekranie
 			BSP_LCD_SelectLayer(1);
@@ -2062,11 +2079,11 @@ void StartDefaultTask(void const * argument)
 			{
 				BSP_LCD_FillRect(x*2, 240 - *(hist+x), 1, *(hist+x));
 			}
-
+			nCzasCalk = MinalCzas(nCzasCalk);
 			BSP_LCD_SelectLayer(1);
 			BSP_LCD_SetTextColor(LCD_COLOR_GREEN);
-			sprintf(chNapis, "t=%ldms ", nCzas);
-			BSP_LCD_DisplayStringAt(260, 225, (uint8_t*)chNapis, LEFT_MODE);
+			sprintf(chNapis, "to=%ld, tc=%ld ms ", nCzasOper, nCzasCalk);
+			BSP_LCD_DisplayStringAt(20, 225, (uint8_t*)chNapis, LEFT_MODE);
 		}
 		BSP_CAMERA_SnapshotStart(bufor_kamery);
 		break;
@@ -2076,13 +2093,14 @@ void StartDefaultTask(void const * argument)
 		if (!chErr)
 		{
 			uint8_t hist[129];
+			nCzasCalk = HAL_GetTick();
 			KonwersjaRGB565doCB7((uint16_t*)bufor_kamery, bufor_czarnobialy, 320*240);
 			DetekcjaKrawedziRoberts(bufor_czarnobialy, bufor_cbOut, 320, 240, 0);
 			KonwersjaCB7doRGB565(bufor_cbOut, (uint16_t*)bufor_okna, 320*240);
-			nCzas = HAL_GetTick();
+			nCzasOper = HAL_GetTick();
 			HistogramCB7(bufor_cbOut, hist, 320*240);
-			nCzas = MinalCzas(nCzas);
-
+			nCzasOper = MinalCzas(nCzasOper);
+			nCzasCalk = MinalCzas(nCzasCalk);
 			//rysuj histogram na  ekranie
 			BSP_LCD_SelectLayer(1);
 			BSP_LCD_SetTextColor(LCD_COLOR_GREEN);
@@ -2091,31 +2109,72 @@ void StartDefaultTask(void const * argument)
 
 			BSP_LCD_SelectLayer(1);
 			BSP_LCD_SetTextColor(LCD_COLOR_GREEN);
-			sprintf(chNapis, "t=%ldms ", nCzas);
-			BSP_LCD_DisplayStringAt(260, 225, (uint8_t*)chNapis, LEFT_MODE);
+			sprintf(chNapis, "to=%ld, tc=%ld ms ", nCzasOper, nCzasCalk);
+			BSP_LCD_DisplayStringAt(20, 225, (uint8_t*)chNapis, LEFT_MODE);
+		}
+		BSP_CAMERA_SnapshotStart(bufor_kamery);
+		break;
+
+	case TW_OBRAZ_ODSZUMIAN:
+		chErr = CzekajNaBit(&chZdjecieGotowe, 1000);	//czekaj z timeoutem na zakończenie transferu DMA
+		if (!chErr)
+		{
+			nCzasCalk = HAL_GetTick();
+			KonwersjaRGB565doCB7((uint16_t*)bufor_kamery, bufor_czarnobialy, 320*240);
+			DetekcjaKrawedziSobel(bufor_czarnobialy, bufor_cbOut, 320, 240, 16);
+			nCzasOper = HAL_GetTick();
+			Odszumianie(bufor_cbOut, bufor_czarnobialy, 320, 240, 16);
+			nCzasOper = MinalCzas(nCzasOper);
+			KonwersjaCB7doRGB565(bufor_czarnobialy, (uint16_t*)bufor_okna, 320*240);
+			nCzasCalk = MinalCzas(nCzasCalk);
+			BSP_LCD_SelectLayer(1);
+			BSP_LCD_SetTextColor(LCD_COLOR_GREEN);
+			sprintf(chNapis, "to=%ld, tc=%ld ms ", nCzasOper, nCzasCalk);
+			BSP_LCD_DisplayStringAt(200, 225, (uint8_t*)chNapis, LEFT_MODE);
+		}
+		BSP_CAMERA_SnapshotStart(bufor_kamery);
+		break;
+
+	case TW_OBRAZ_DYLATACJA:
+		chErr = CzekajNaBit(&chZdjecieGotowe, 1000);	//czekaj z timeoutem na zakończenie transferu DMA
+		if (!chErr)
+		{
+			nCzasCalk = HAL_GetTick();
+			KonwersjaRGB565doCB7((uint16_t*)bufor_kamery, bufor_czarnobialy, 320*240);
+			DetekcjaKrawedziSobel(bufor_czarnobialy, bufor_cbOut, 320, 240, 16);
+			Odszumianie(bufor_cbOut, bufor_czarnobialy, 320, 240, 16);
+			nCzasOper = HAL_GetTick();
+			Dylatacja(bufor_czarnobialy, bufor_cbOut, 320, 240, 16);
+			nCzasOper = MinalCzas(nCzasOper);
+			KonwersjaCB7doRGB565(bufor_cbOut, (uint16_t*)bufor_okna, 320*240);
+			nCzasCalk = MinalCzas(nCzasCalk);
+			BSP_LCD_SelectLayer(1);
+			BSP_LCD_SetTextColor(LCD_COLOR_GREEN);
+			sprintf(chNapis, "to=%ld, tc=%ld ms ", nCzasOper, nCzasCalk);
+			BSP_LCD_DisplayStringAt(200, 225, (uint8_t*)chNapis, LEFT_MODE);
 		}
 		BSP_CAMERA_SnapshotStart(bufor_kamery);
 		break;
 
 	case TW_JULIA:
-		nCzas = HAL_GetTick();
+		nCzasOper = HAL_GetTick();
 		GenerateJulia(320, 240, 160, 120, 135, (unsigned short *)bufor_okna);
 		fImag -= 0.002;
-		nCzas = MinalCzas(nCzas);
+		nCzasOper = MinalCzas(nCzasOper);
 
 		BSP_LCD_SelectLayer(1);
-		sprintf(chNapis, "Julia: t=%ldms, c=%.3f ", nCzas, fImag);
+		sprintf(chNapis, "Julia: t=%ldms, c=%.3f ", nCzasOper, fImag);
 		BSP_LCD_DisplayStringAt(6, 225, (uint8_t*)chNapis, LEFT_MODE);
 		break;
 
 	case TW_MANDELBROT:
-		nCzas = HAL_GetTick();
+		nCzasOper = HAL_GetTick();
 		GenerateMandelbrot(fX, fY, fZoom, 30, (unsigned short *)bufor_okna);
 		chMnozPalety += 1;
-		nCzas = MinalCzas(nCzas);
+		nCzasOper = MinalCzas(nCzasOper);
 
 		BSP_LCD_SelectLayer(1);
-		sprintf(chNapis, "Mandelbrot: t=%ldms z=%.1f, p=%d", nCzas, fZoom, chMnozPalety);
+		sprintf(chNapis, "Mandelbrot: t=%ldms z=%.1f, p=%d", nCzasOper, fZoom, chMnozPalety);
 		BSP_LCD_DisplayStringAt(6, 225, (uint8_t*)chNapis, LEFT_MODE);
 		break;
 

@@ -29,7 +29,7 @@
 ../Core/Src/main.c:1503:13:MX_FMC_Init	40	static
 ../Core/Src/main.c:1554:13:MX_GPIO_Init	72	static
 ../Core/Src/main.c:1713:6:vApplicationIdleHook	4	static
-../Core/Src/main.c:1727:6:StartDefaultTask	448	static
-../Core/Src/main.c:2130:6:MPU_Config	24	static
-../Core/Src/main.c:2176:6:HAL_TIM_PeriodElapsedCallback	16	static
-../Core/Src/main.c:2193:6:Error_Handler	4	static,ignoring_inline_asm
+../Core/Src/main.c:1727:6:StartDefaultTask	384	static
+../Core/Src/main.c:2189:6:MPU_Config	24	static
+../Core/Src/main.c:2235:6:HAL_TIM_PeriodElapsedCallback	16	static
+../Core/Src/main.c:2252:6:Error_Handler	4	static,ignoring_inline_asm
