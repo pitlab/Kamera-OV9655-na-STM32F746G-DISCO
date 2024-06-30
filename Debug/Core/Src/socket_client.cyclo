@@ -1,2 +1,2 @@
-../Core/Src/socket_client.c:24:6:WriteLWIPClientTask	12
-../Core/Src/socket_client.c:150:6:ReadLWIPClientTask	4
+../Core/Src/socket_client.c:25:6:WriteLWIPClientTask	12
+../Core/Src/socket_client.c:151:6:ReadLWIPClientTask	4

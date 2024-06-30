@@ -798,7 +798,7 @@
  * IP_DEFAULT_TTL: Default value for Time-To-Live used by transport layers.
  */
 #if !defined IP_DEFAULT_TTL || defined __DOXYGEN__
-#define IP_DEFAULT_TTL                  44
+#define IP_DEFAULT_TTL                  255
 #endif
 
 /**

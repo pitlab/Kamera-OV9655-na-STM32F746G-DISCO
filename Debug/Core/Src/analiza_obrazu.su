@@ -1,6 +1,8 @@
-../Core/Src/analiza_obrazu.c:22:6:KonwersjaRGB565doCB7	40	static
-../Core/Src/analiza_obrazu.c:51:6:KonwersjaCB7doRGB565	32	static
-../Core/Src/analiza_obrazu.c:79:6:DetekcjaKrawedziRoberts	48	static
-../Core/Src/analiza_obrazu.c:118:6:DetekcjaKrawedzi	56	static
-../Core/Src/analiza_obrazu.c:167:6:HistogramCB7	560	static
-../Core/Src/analiza_obrazu.c:204:6:HistogramRGB565	552	static
+../Core/Src/analiza_obrazu.c:21:6:KonwersjaRGB565doCB7	32	static
+../Core/Src/analiza_obrazu.c:42:6:KonwersjaCB7doRGB565	40	static
+../Core/Src/analiza_obrazu.c:69:6:DetekcjaKrawedziRoberts	56	static
+../Core/Src/analiza_obrazu.c:114:6:DetekcjaKrawedziSobel	64	static
+../Core/Src/analiza_obrazu.c:211:6:HistogramCB7	560	static
+../Core/Src/analiza_obrazu.c:248:6:HistogramRGB565	552	static
+../Core/Src/analiza_obrazu.c:304:6:Progowanie	32	static
+../Core/Src/analiza_obrazu.c:325:6:Dylatacja	24	static

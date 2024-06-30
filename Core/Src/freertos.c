@@ -21,7 +21,6 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "main.h"
-#include "cmsis_os.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -49,8 +48,7 @@
 //osThreadId lwipWriteTaskHandle;
 //osThreadId lwipReadTaskHandle;
 /* USER CODE END Variables */
-//osThreadId defaultTaskHandle;
-osMessageQId sockfd_queueHandle;
+
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
 

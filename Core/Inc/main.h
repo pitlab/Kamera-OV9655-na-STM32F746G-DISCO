@@ -50,6 +50,18 @@ extern "C" {
 //#define KLAW2_Y	65
 //#define KLAW3_Y	125
 //#define KLAW4_Y	175
+
+//tryby wyświetlania w pętli głównej
+#define TW_JULIA			1
+#define TW_MONITOR			2
+#define TW_TERMINAL			3
+#define TW_OBRAZ_CB			4
+#define TW_OBRAZ_CB_HIST	5
+#define TW_OBRAZ_KRAW_ROB	6
+#define TW_OBRAZ_KRAW_SOB	7
+#define TW_OBRAZ_KRAW_HIST	8
+#define TW_MANDELBROT 		9
+#define DLUGOSC_NAPISU	70
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
@@ -403,13 +415,6 @@ void Error_Handler(void);
 #define ARDUINO_MISO_D12_GPIO_Port GPIOB
 #define ARDUINO_MOSI_PWM_D11_Pin GPIO_PIN_15
 #define ARDUINO_MOSI_PWM_D11_GPIO_Port GPIOB
-
-//tryby wyświetlania w pętli głównej
-#define TW_JULIA		1
-#define TW_MONITOR		2
-#define TW_TERMINAL		3
-#define DLUGOSC_NAPISU	70
-
 
 /* USER CODE BEGIN Private defines */
 extern osMessageQId sockfd_queueHandle;

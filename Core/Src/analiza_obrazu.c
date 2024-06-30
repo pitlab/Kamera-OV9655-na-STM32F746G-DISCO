@@ -1,10 +1,10 @@
-/*
- * analiza_obrazu.c
- *
- *  Created on: Jun 20, 2024
- *      Author: PitLab
- */
-
+//////////////////////////////////////////////////////////////////////////////
+//
+// Zestaw narzędzi do obróbki obrazu
+//
+// (c) PitLab 2024
+// http://www.pitlab.pl
+//////////////////////////////////////////////////////////////////////////////
 #include "analiza_obrazu.h"
 #include "stdlib.h"
 
@@ -14,27 +14,18 @@
 // Zapisuje kopię obrazu czarnobiałego w formacie wyświetlacza RGB565
 // Parametry:
 // [we] obrazRGB565* - wskaźnik na bufor[2*rozmiar] z obrazem kolorowym
-// [wy] obrazCB565* - wskaźnik na bufor[2*rozmiar] z obrazem czarno-białym
-// [wy] obrazCB* - wskażnik na bufor[rozmiar] z obrazem czarno-białym
+// [wy] obrazCB* - wskaźnik na bufor[rozmiar] z obrazem czarno-białym
 // [we] rozmiar - rozmiar bufora
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void KonwersjaRGB565doCB7(uint8_t *obrazRGB565, uint8_t *obrazCB565, uint8_t *obrazCB, uint32_t rozmiar)
+void KonwersjaRGB565doCB7(uint16_t *obrazRGB565, uint8_t *obrazCB, uint32_t rozmiar)
 {
-	uint8_t pix1, pix2, pixCB, pixRB, pixG;
+	uint16_t pix;
 	for (uint32_t n=0; n<rozmiar; n++)
 	{
-		pix1 = *(obrazRGB565 + 2 * n + 0);		//B+G
-		pix2 = *(obrazRGB565 + 2 * n + 1);		//G+R
-
+		pix = *(obrazRGB565 + n);
 		//bity czerwony i niebieski mają skalę 5-bitową (32), zielony 6-bitową (64).
-		pixCB = (pix1 >> 3) + (pix2 & 0x1F) + ((pix1 & 0x07) << 3) + (pix2 >> 5);		//((R32 + B32) + G64)
-		*(obrazCB + n) = pixCB;
-
-		pixRB = pixCB >> 2;	//składowe: czerwona i niebieska
-		pixG  = pixCB >> 1;	//składowa zielona
-		*(obrazCB565 + 2 * n + 0) = ((pixG & 0x07) << 5) + pixRB;
-		*(obrazCB565 + 2 * n + 1) = (pixRB << 3) + (pixG >> 3);
+		*(obrazCB + n) = (pix >> 11) + ((pix & 0x07E0) >> 5) + (pix & 0x1F);		//B32 + G64 + R32
 	}
 }
 
@@ -48,23 +39,22 @@ void KonwersjaRGB565doCB7(uint8_t *obrazRGB565, uint8_t *obrazCB565, uint8_t *ob
 // rozmiar - rozmiar bufora
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void KonwersjaCB7doRGB565(uint8_t *obrazCB, uint8_t *obrazCB565, uint32_t rozmiar)
+void KonwersjaCB7doRGB565(uint8_t *obrazCB, uint16_t *obrazCB565, uint32_t rozmiar)
 {
-	uint8_t pixCB, pixRB, pixG;
+	uint16_t pixCB, pixRB, pixG;
 	for (uint32_t n=0; n<rozmiar; n++)
 	{
 		pixCB = *(obrazCB+n);
 		pixRB = pixCB >> 2;	//składowe: czerwona i niebieska
 		pixG  = pixCB >> 1;	//składowa zielona
-		*(obrazCB565 + 2*n+0) = ((pixG & 0x07) << 5) + pixRB;
-		*(obrazCB565 + 2*n+1) = (pixRB << 3) + (pixG >> 3);
+		*(obrazCB565 + n) = (pixRB << 11) + (pixG << 5) + pixRB;
 	}
 }
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Wykonuje splot Robertsa do detekcji krawędzi na obrazie czarno-białym
+// Wykonuje splot Robertsa do detekcji krawędzi na obrazie monochromatycznym
 // Są dwie macierze splotu robiace detekcję w poziomie i pionie
 // [1  0] [ 0 1]
 // [0 -1] [-1 0]
@@ -79,23 +69,28 @@ void KonwersjaCB7doRGB565(uint8_t *obrazCB, uint8_t *obrazCB565, uint32_t rozmia
 void DetekcjaKrawedziRoberts(uint8_t *obrazWe, uint8_t *obrazWy, uint16_t szerokosc, uint16_t wysokosc, uint8_t prog)
 {
 	uint16_t x, y;
+	uint32_t yszer;
 	int pixWe[4], pixWy;
+	uint8_t *wiersz;
 
 	*obrazWy = 0;	//inicjuj pierwszy piksel, bo pętla go nie ruszy
 	for (y=0; y<wysokosc-1; y++)
 	{
+		yszer = y*szerokosc;
 		for (x=1; x<szerokosc-1; x++)
 		{
-			pixWe[0] = *(obrazWe + (y*(szerokosc)) + x);
-			pixWe[1] = *(obrazWe + (y*(szerokosc)) + x+1);
+			wiersz = obrazWe + yszer + x;
+			pixWe[0] = *(wiersz);
+			pixWe[1] = *(wiersz + 1);
 
-			pixWe[2] = *(obrazWe + ((y+1)*szerokosc) + x);
-			pixWe[3] = *(obrazWe + ((y+1)*szerokosc) + x+1);
+			wiersz = obrazWe + ((y+1)*szerokosc) + x;
+			pixWe[2] = *(wiersz);
+			pixWe[3] = *(wiersz + 1);
 
 			pixWy = abs(pixWe[0] - pixWe[3]) + abs(pixWe[2] - pixWe[1]);
 			if (pixWy <= prog)
 				pixWy = 0;
-			*(obrazWy + y*szerokosc + x) = pixWy;
+			*(obrazWy + yszer + x) = pixWy;
 		}
 	}
 }
@@ -103,55 +98,104 @@ void DetekcjaKrawedziRoberts(uint8_t *obrazWe, uint8_t *obrazWy, uint16_t szerok
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Wykonuje splot Sobela do detekcji krawędzi na obrazie czarno-białym
+// Wykonuje splot Sobela do detekcji krawędzi na obrazie monochromatycznym
 // Są dwie macierze splotu robiace detekcję w poziomie i pionie
-// [-1 0 1] [ 1  2  1]
-// [-2 0 2] [ 0  0  0]
-// [-1 0 1] [-1 -2 -1]
+// [P0, P1, P2]   [-1 0 1]   [ 1  2  1]
+// [P3, P4, P5] x [-2 0 2] x [ 0  0  0]
+// [P6, P7, P8]   [-1 0 1]   [-1 -2 -1]
 // Parametry:
 // [we] obrazWe* - wskaźnik na bufor[rozmiar] z obrazem czarno-białym
 // [wy] obrazWy* - wskaźnik na bufor[rozmiar] z obrazem po detekcji
-// szerokosc - szerokość obrazu (ilość pikseli w wierszu)
-// wysokosc - wysokość obrazu (ilość wierszy)
+// [we] szerokosc - szerokość obrazu (ilość pikseli w wierszu)
+// [we] wysokosc - wysokość obrazu (ilość wierszy)
+// [we] prog - wartość progująca
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void DetekcjaKrawedzi(uint8_t *obrazWe, uint8_t *obrazWy, uint16_t szerokosc, uint16_t wysokosc)
+void DetekcjaKrawedziSobel(uint8_t *obrazWe, uint8_t *obrazWy, uint16_t szerokosc, uint16_t wysokosc, uint8_t prog)
 {
 	uint16_t x, y;
-	uint8_t pixWe[9], pixWy[9];
+	uint8_t *wiersz;
+	uint8_t pix, pixWe[9];//, pixWy[9];
+	uint32_t yszer, ym1szer, yp1szer;	//Y*szerokosc, Y minus 1 * szerokosc, Y plus 1 * szerokosc
 
 	//inicjuj dane wyjściowe, bo będziemy dodawali do tego
-	for (uint32_t n=0; n<szerokosc*wysokosc; n++)
-		*(obrazWy + n) = 0;
+	//for (uint32_t n=0; n<szerokosc*wysokosc; n++)
+	for (x=0; x<szerokosc; x++)
+		*(obrazWy + x) = 0;
 
 	for (y=1; y<wysokosc-1; y++)
 	{
+		yszer = y * szerokosc;
+		ym1szer = (y-1) * szerokosc;
+		yp1szer = (y+1) * szerokosc;
 		for (x=1; x<szerokosc-1; x++)
 		{
-			pixWe[0] = *(obrazWe + (y*(szerokosc-1)) + x - 1);
-			pixWe[1] = *(obrazWe + (y*(szerokosc-1)) + x);
-			pixWe[2] = *(obrazWe + (y*(szerokosc-1)) + x + 1);
+			wiersz = obrazWe + ym1szer + x;
+			pixWe[0] = *(wiersz - 1);
+			pixWe[1] = *(wiersz);
+			pixWe[2] = *(wiersz + 1);
 
-			pixWe[3] = *(obrazWe + (y*(szerokosc)) + x - 1);
-			pixWe[4] = *(obrazWe + (y*(szerokosc)) + x);
-			pixWe[5] = *(obrazWe + (y*(szerokosc)) + x + 1);
+			wiersz = obrazWe + yszer + x;
+			pixWe[3] = *(wiersz - 1);
+			pixWe[4] = *(wiersz);
+			pixWe[5] = *(wiersz + 1);
 
-			pixWe[6] = *(obrazWe + (y*(szerokosc+1)) + x - 1);
-			pixWe[7] = *(obrazWe + (y*(szerokosc+1)) + x);
-			pixWe[8] = *(obrazWe + (y*(szerokosc+1)) + x + 1);
+			wiersz = obrazWe + yp1szer + x;
+			pixWe[6] = *(wiersz - 1);
+			pixWe[7] = *(wiersz);
+			pixWe[8] = *(wiersz + 1);
 
-			//mnożenie przez obie macierze: wiersz obrazu * kolumna macierzy splotu
-			pixWy[0] = ((pixWe[0] * -1) + (pixWe[1] * -2) + (pixWe[2] * 1))  + (pixWe[0] + (pixWe[0] * -1));
+			pix = abs(pixWe[2] - pixWe[0] + pixWe[8] - pixWe[6]  + (2 * (pixWe[5] - pixWe[3]))) +
+			      abs(pixWe[0] - pixWe[6] + pixWe[2] - pixWe[8]  + (2 * (pixWe[1] - pixWe[7])));
+			pix >>= 2;			//normalizacja dzielac przez 4
+			if (pix <= prog)	//progowanie
+				pix = 0;
+			*(obrazWy + x + yszer) = pix;
+
+			/*/mnożenie przez obie macierze: wiersz obrazu * kolumna macierzy splotu
+			pixWy[0] = ((pixWe[0] * -1) + (pixWe[1] * -2) + (pixWe[2] * 1)) + (pixWe[0] + (pixWe[2] * -1));
 			pixWy[1] = ((pixWe[0] *  2) + (pixWe[2] * -2));
 			pixWy[2] = (pixWe[0] + (pixWe[1] * 2)  + pixWe[2]) + (pixWe[0] + (pixWe[2] * -1)) ;
 
-			pixWy[3] = ((pixWe[0] * -1) + (pixWe[1] * -2) + (pixWe[2] * 1));
+			pixWy[3] = ((pixWe[3] * -1) + (pixWe[4] * -2) + (pixWe[5] * 1)) + (pixWe[3] + (pixWe[5] * -1));
+			pixWy[4] = ((pixWe[3] *  2) + (pixWe[5] * -2));
+			pixWy[5] = (pixWe[3] + (pixWe[4] * 2)  + pixWe[5]) + (pixWe[3] + (pixWe[5] * -1)) ;
 
-			pixWy[6] = pixWe[0] * 1 + pixWe[2];
-			pixWy[7] = pixWe[1] * 2 + pixWe[2];
-			pixWy[8] = pixWe[2] * 1 + pixWe[2];
+			pixWy[6] = ((pixWe[6] * -1) + (pixWe[7] * -2) + (pixWe[8] * 1)) + (pixWe[6] + (pixWe[8] * -1));
+			pixWy[7] = ((pixWe[6] *  2) + (pixWe[8] * -2));
+			pixWy[8] = (pixWe[6] + (pixWe[7] * 2)  + pixWe[8]) + (pixWe[6] + (pixWe[8] * -1)) ;
+
+			//dodaj wynik do obrazu wyjściowego
+			wiersz = obrazWy + ((y-1)*szerokosc) + x;
+			*(wiersz - 1) += pixWy[0];
+			*(wiersz)     += pixWy[1];
+			*(wiersz + 1) += pixWe[2];
+
+			wiersz = obrazWy + ( y *  szerokosc) + x;
+			*(wiersz - 1) += pixWy[3];
+			*(wiersz)     += pixWy[4];
+			*(wiersz + 1) += pixWe[5];
+
+			wiersz = obrazWy + ((y+1)*szerokosc) + x;
+			*(wiersz - 1) += pixWy[6];
+			*(wiersz)     += pixWy[7];
+			*(wiersz + 1) += pixWe[8];*/
 		}
 	}
+
+	yszer = (wysokosc-1)*szerokosc;
+	for (x=0; x<szerokosc; x++)
+		*(obrazWy + yszer + x) = 0;
+
+	//na końcu trzeba zrobić normalizację dzielac przez 4, ale zrobię tu też progowanie
+	/*for (uint32_t n=0; n<szerokosc*wysokosc; n++)
+	{
+		pix = *(obrazWy + n);
+		pix = *(obrazWy + n) >> 2;
+		if (pix <= prog)
+			pix = 0;
+		*(obrazWy + n) = pix;
+	} */
 }
 
 
@@ -245,4 +289,40 @@ void HistogramRGB565(uint8_t *obrazRGB565, uint8_t *histR, uint8_t *histG, uint8
 			temp = 255;
 		*(histG+n) = temp;
 	}
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Progowanie obrazu mnochromatycznego
+// Parametry:
+// [we/wy] obraz* - wskaźnik na bufor[rozmiar] z obrazem
+// [we] prog - wartość progu uznania za białe
+// [we] rozmiar - ilość pikseli do analizy
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void Progowanie(uint8_t *obraz, uint8_t prog, uint32_t rozmiar)
+{
+	for (uint32_t n=0; n<rozmiar; n++)
+	{
+		if (*(obraz + n) > prog)
+			*(obraz + n) = 0x7F;
+		else
+			*(obraz + n) = 0x00;
+	}
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Dylatacja morfologiczna. Jeżeli chociaż jeden z piskeli sąsiadujacych ma wartość 1 to punkt centralny też.
+// Parametry:
+// [we] obrazWe* - wskaźnik na bufor[rozmiar] z obrazem wejściowym
+// [wy] obrazWy* - wskaźnik na bufor[rozmiar] z obrazem wyjściowym
+// [we] rozmiar - ilość pikseli do analizy
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void Dylatacja(uint8_t *obrazWe, uint8_t *obrazWy, uint32_t rozmiar)
+{
+
 }

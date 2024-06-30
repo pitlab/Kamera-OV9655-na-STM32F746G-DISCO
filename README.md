@@ -1,5 +1,11 @@
 # Kamera na STM32F746G-DISCO
 Demonstracja wykorzystania kamery OV9655 1,3Mpix w trybie ciągłej transmisji oraz zdjęcia na STM32F746G-DISCO
+Testowanie funkcji obróbki obrazu: 
+- konwersja z RGB565 na czarno-biały 7-bit
+- detekcja krawędzi
+- histogram obrazu czarnobialego i kolorowego
+
+Testy łącza ethernetowego i komunikacji przez sockety. Łączy się z serwerem pod adresem 192.168.1.102 i wysyła przykładowy tekst. Jeżeli serwer coś wyśle, to wypisuwane jest to na ekranie jak na terminalu.
 
 ![Przykład ekranu](kamera@STM32764g-DISCO.jpg)
 

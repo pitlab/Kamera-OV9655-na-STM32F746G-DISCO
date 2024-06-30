@@ -47,8 +47,10 @@
 #define CENTER 9998
 
 //rozmiar ekranu
-#define DISP_X_SIZE		480
-#define DISP_Y_SIZE		272
+#define DISP_MAIN_X_SIZE	480
+#define DISP_MAIN_Y_SIZE	272
+#define DISP_X_SIZE			320
+#define DISP_Y_SIZE			240
 
 
 #define FONT_SH		12	//wysoko�c ma�ej czcionki

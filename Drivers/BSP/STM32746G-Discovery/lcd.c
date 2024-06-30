@@ -52,9 +52,9 @@ unsigned char Menu(unsigned char chPozycja)
 		print(chNapis, 20, 80, 0);
 		sprintf(chNapis, "Setup 2");
 		print(chNapis, 20, 100, 0);
-		sprintf(chNapis, "Setup 3");
+		sprintf(chNapis, "Histogram RGB565");
 		print(chNapis, 20, 120, 0);
-		sprintf(chNapis, "Setup 4");
+		sprintf(chNapis, "Histogram bitów obrazu");
 		print(chNapis, 20, 140, 0);
 		sprintf(chNapis, "Setup 5");
 		print(chNapis, 20, 160, 0);

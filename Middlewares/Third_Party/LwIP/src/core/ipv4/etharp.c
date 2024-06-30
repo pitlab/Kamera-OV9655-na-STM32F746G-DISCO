@@ -1201,12 +1201,4 @@ etharp_request(struct netif *netif, const ip4_addr_t *ipaddr)
   return etharp_request_dst(netif, ipaddr, &ethbroadcast);
 }
 
-
-void PobierzEthArp(unsigned char n, uint32_t *nIpAdr)
-{
-	*nIpAdr = arp_table[n].ipaddr.addr;
-	//for (uint8_t x=0; x<6; x++)
-		//ethAdr->addr[x] = arp_table[n].ethaddr.addr[x];
-}
-
 #endif /* LWIP_IPV4 && LWIP_ARP */
